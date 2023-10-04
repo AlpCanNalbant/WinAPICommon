@@ -1,0 +1,4 @@
+# Ignore specified folders.
+bin/
+obj/
+temp/
