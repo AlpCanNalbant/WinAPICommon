@@ -54,7 +54,7 @@ namespace WCmn::Modules
 
         if (elapsed_.count() > Delay)
         {
-            const auto isSended = MSendInput();
+            const auto isSended = SendInput();
             elapsed_ = {};
             return isSended;
         }
@@ -62,10 +62,10 @@ namespace WCmn::Modules
         return false;
     }
 
-    bool KeySender::MSendInput()
+    bool KeySender::SendInput()
     {
         SetKeyInput(this->Key);
-        const UINT sentResult = SendInput(ARRAYSIZE(inputs_), inputs_, sizeof(INPUT));
+        const UINT sentResult = ::SendInput(ARRAYSIZE(inputs_), inputs_, sizeof(INPUT));
         if (sentResult != ARRAYSIZE(inputs_))
         {
             WCmn::Log->Error(L"SendInput failed to send.", GetLastError());

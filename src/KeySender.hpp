@@ -30,7 +30,7 @@ namespace WCmn::Modules
         [[nodiscard]] WCmn::Key GetKeyInput() const;
         void SetKeyInput(const WCmn::Key key);
         bool DelayedSendInput();
-        bool MSendInput();
+        bool SendInput();
 
         INPUT inputs_[2]{};
         std::chrono::time_point<std::chrono::steady_clock> prev_{std::chrono::steady_clock::now()};
