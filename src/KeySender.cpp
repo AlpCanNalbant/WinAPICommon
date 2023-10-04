@@ -33,7 +33,7 @@ namespace WCmn::Modules
         {
             return DelayedSendInput();
         }
-        return MSendInput();
+        return SendInput();
     }
 
     Key KeySender::GetKeyInput() const
