@@ -1,8 +1,4 @@
-@REM ::
-@REM :: MIT License - Copyright (c) 2023 Alp Can Nalbant
-@REM :: This file is subject to the terms and conditions defined in
-@REM :: file 'LICENSE.txt', which is part of this source code package.
-@REM ::
+@REM Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
 @echo off
 title The Windows API Common Helper Library Builder
