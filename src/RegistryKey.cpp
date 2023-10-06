@@ -1,6 +1,5 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
-#include "RegistryKey.hpp"
 #include "WinAPICommon.hpp"
 
 namespace WinCmn

@@ -4,8 +4,6 @@
 #include <filesystem>
 #include <comdef.h>
 
-#include "Log.hpp"
-#include "Path.hpp"
 #include "WinAPICommon.hpp"
 
 namespace WinCmn

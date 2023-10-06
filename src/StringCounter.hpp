@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <concepts>
+#include "Concepts.hpp"
 
 namespace WinCmn
 {

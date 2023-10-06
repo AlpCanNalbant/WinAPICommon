@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "RegistryKey.hpp"
 
 namespace WinCmn

@@ -3,8 +3,8 @@
 #pragma once
 
 #include <string>
-#include <memory>
 #include <fstream>
+#include <memory>
 
 namespace WinCmn
 {
