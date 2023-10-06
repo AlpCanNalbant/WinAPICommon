@@ -15,10 +15,9 @@ namespace WinCmn
             enum class ErrorType;
 
         public:
-            std::wstring OutputFile;
+            std::wstring OutputFile{};
             wchar_t InfoMark[4]{'(', '!', ')', '\0'}, ErrorMark[4]{'[', 'X', ']', '\0'};
 
-            Log();
             void WriteLine(const wchar_t *mark, const std::wstring &explanation);
             void Info(const std::wstring &explanation);
             void Error(const std::wstring &reason);
@@ -28,6 +27,7 @@ namespace WinCmn
 
         private:
             void Error(const std::wstring &reason, const ErrorType type);
+            void CreateOutputFile(const wchar_t *mark, const std::wstring &explanation);
 
             std::wofstream fileStream_;
             HRESULT errorCode_;

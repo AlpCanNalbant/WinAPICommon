@@ -5,6 +5,7 @@
 #include <comdef.h>
 
 #include "WinAPICommon.hpp"
+#include "Log.hpp"
 
 namespace WinCmn
 {
@@ -12,29 +13,17 @@ namespace WinCmn
 
     namespace Impl
     {
-        Log::Log()
-            : OutputFile{WinCmn::GetBaseDirectory() + L"\\Log.txt"} {}
-
         void Log::WriteLine(const wchar_t *mark, const std::wstring &explanation)
         {
-            fileStream_.open(std::filesystem::path(OutputFile), std::ios_base::app); // Append instead of overwrite
-#ifndef NDEBUG
-            if (!fileStream_.is_open())
+#define WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS mark << L' ' << explanation << L" ~ Happened at: " << WinCmn::GetDate() << L".\n";
+
+            if (!OutputFile.empty())
             {
-                std::wcout << "File stream cannot be opened.\n";
-                return;
+                CreateOutputFile(mark, explanation);
             }
-#endif
-#define __WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS mark << L' ' << explanation << L" ~ Happened at: " << WinCmn::GetDate() << L".\n";
-            fileStream_ << __WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
-            fileStream_.close();
+
 #ifndef NDEBUG
-            if (fileStream_.fail())
-            {
-                std::wcout << "An error occurred while closing the file stream.\n";
-                return;
-            }
-            std::wcout << __WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
+            std::wcout << WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
 #endif
         }
 
@@ -79,6 +68,27 @@ namespace WinCmn
             _com_error errorHandler{errorCode};
             LPCTSTR errorText = errorHandler.ErrorMessage();
             return {errorText};
+        }
+
+        void Log::CreateOutputFile(const wchar_t *mark, const std::wstring &explanation)
+        {
+            fileStream_.open(std::filesystem::path(OutputFile), std::ios_base::app); // Append instead of overwrite
+#ifndef NDEBUG
+            if (!fileStream_.is_open())
+            {
+                std::wcout << "File stream cannot be opened.\n";
+                return;
+            }
+#endif
+            fileStream_ << WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
+            fileStream_.close();
+#ifndef NDEBUG
+            if (fileStream_.fail())
+            {
+                std::wcout << "An error occurred while closing the file stream.\n";
+                return;
+            }
+#endif
         }
     }
 }
