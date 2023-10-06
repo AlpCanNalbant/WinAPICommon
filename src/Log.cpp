@@ -8,16 +8,16 @@
 #include "Path.hpp"
 #include "WinAPICommon.hpp"
 
-namespace WCmn
+namespace WinCmn
 {
     extern const std::unique_ptr<Impl::Log> Log = std::make_unique<Impl::Log>();
 
     namespace Impl
     {
         Log::Log()
-            : OutputFile{WCmn::Path->GetRoot() + L"\\Log.txt"} {}
+            : OutputFile{WinCmn::GetBaseDirectory() + L"\\Log.txt"} {}
 
-        void Log::WriteLine(const std::string &mark, const std::wstring &explanation)
+        void Log::WriteLine(const wchar_t *mark, const std::wstring &explanation)
         {
             fileStream_.open(std::filesystem::path(OutputFile), std::ios_base::app); // Append instead of overwrite
 #ifndef NDEBUG
@@ -27,9 +27,8 @@ namespace WCmn
                 return;
             }
 #endif
-            const auto line = std::wstring{mark.begin(), mark.end()} + L' ' + explanation + L" ~ Happened at: " + WCmn::Time->GetDate() + L".\n";
-
-            fileStream_ << line;
+#define __WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS mark << L' ' << explanation << L" ~ Happened at: " << WinCmn::GetDate() << L".\n";
+            fileStream_ << __WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
             fileStream_.close();
 #ifndef NDEBUG
             if (fileStream_.fail())
@@ -37,8 +36,7 @@ namespace WCmn
                 std::wcout << "An error occurred while closing the file stream.\n";
                 return;
             }
-
-            std::wcout << line;
+            std::wcout << __WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
 #endif
         }
 

@@ -2,31 +2,18 @@
 
 #pragma once
 
-#include <windows.h>
 #include <string>
 
-#include "IModule.hpp"
 #include "Concepts.hpp"
-#include "StringLoopTerminator.hpp"
 
-namespace WCmn::Modules
+namespace WinCmn
 {
-    class String : public IModule
-    {
-    public:
-        template <Character T>
-        [[nodiscard]] T *ToBuffer(const std::basic_string<T> &str) const;
-        template <Character T>
-        [[nodiscard]] DWORD GetLength(const T *string, bool isMulti = false) const;
-        template <Character T>
-        [[nodiscard]] DWORD GetLengthCountNulls(const T *string, bool isMulti = false) const;
-
-    private:
-        template <Character T>
-        [[nodiscard]] DWORD GetLength(const T *string, bool isCountNulls, bool isMulti) const;
-
-        WCmn::StringLoopTerminator<wchar_t, true> slt_;
-    };
+    template <Character T>
+    [[nodiscard]] T *ToBuffer(const std::basic_string<T> &str);
+    template <Character T>
+    [[nodiscard]] DWORD GetStringLength(const T *buffer, bool countNull = false);
+    template <Character T>
+    [[nodiscard]] DWORD GetMultiStringLength(const T *buffer, bool countNull = false);
 }
 
 #include "String.inl"

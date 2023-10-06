@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace WCmn
+namespace WinCmn
 {
     enum class RegistryKeyType
     {

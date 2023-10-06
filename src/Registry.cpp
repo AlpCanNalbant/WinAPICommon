@@ -3,9 +3,9 @@
 #include "Registry.hpp"
 #include "Log.hpp"
 
-namespace WCmn::Modules
+namespace WinCmn
 {
-    RegistryKey Registry::OpenKey(const RegistryKeyType keyType, const std::wstring &subKeyName) const
+    RegistryKey OpenRegistryKey(const RegistryKeyType keyType, const std::wstring &subKeyName)
     {
         HKEY hKey = ToKeyHandle(keyType);
         LPCWSTR lpSubKey = subKeyName.c_str();
@@ -19,7 +19,7 @@ namespace WCmn::Modules
         return {hKey, keyType};
     }
 
-    HKEY Registry::ToKeyHandle(const RegistryKeyType branch) const
+    HKEY ToKeyHandle(const RegistryKeyType branch)
     {
         switch (branch)
         {

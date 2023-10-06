@@ -5,31 +5,28 @@
 #include <utility>
 #include <chrono>
 
-#include "IModule.hpp"
 #include "Key.hpp"
 
-namespace WCmn::Modules
+namespace WinCmn
 {
-    class KeySender : public IModule
+    class KeySender
     {
     public:
         Key Key;
-        float Delay{};
+        float Delay;
 
         KeySender();
-        KeySender(const WCmn::Key key, const float delayInSeconds = 0.0f);
+        KeySender(const WinCmn::Key key, const float delayInSeconds = 0.0f);
 
-        void ResetTiming();
-        bool Send();
+        void ResetTiming() const noexcept;
+        bool Send() const noexcept;
 
     private:
-        [[nodiscard]] WCmn::Key GetKeyInput() const;
-        void SetKeyInput(const WCmn::Key key);
-        bool DelayedSendInput();
-        bool SendInput();
+        bool DelayedSendInput() const noexcept;
+        bool SendInput() const noexcept;
 
-        INPUT inputs_[2]{};
-        std::chrono::time_point<std::chrono::steady_clock> prev_{std::chrono::steady_clock::now()};
-        std::chrono::duration<float> elapsed_{};
+        mutable INPUT inputs_[2]{};
+        mutable std::chrono::time_point<std::chrono::steady_clock> prev_{std::chrono::steady_clock::now()};
+        mutable std::chrono::duration<float> elapsed_{};
     };
 }

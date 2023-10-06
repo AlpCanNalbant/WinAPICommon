@@ -3,7 +3,7 @@
 #include "RegistryKey.hpp"
 #include "WinAPICommon.hpp"
 
-namespace WCmn
+namespace WinCmn
 {
     RegistryKey::RegistryKey(HKEY hKey, const RegistryKeyType type)
         : Type{type}, hKey_{hKey} {}
@@ -32,9 +32,9 @@ namespace WCmn
         return true;
     }
 
-    bool RegistryKey::SetEventLogType(const EventLogType type, const std::wstring &name, const RegistryValueType regType) const
+    bool RegistryKey::SetEventLogType(const EventLogType typeData, const std::wstring &name, const RegistryValueType regType) const
     {
-        return SetValue(name, regType, reinterpret_cast<LPCBYTE>(&type), sizeof(type));
+        return SetValue(name, regType, reinterpret_cast<LPCBYTE>(&typeData), sizeof(typeData));
     }
 
     bool RegistryKey::Close()

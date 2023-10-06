@@ -4,7 +4,7 @@
 
 #include "RegistryStringType.hpp"
 
-namespace WCmn
+namespace WinCmn
 {
     enum class RegistryValueType : DWORD
     {

@@ -6,6 +6,8 @@ title The Windows API Common Helper Library Builder
 setlocal EnableDelayedExpansion
 
 set Projects=WinAPICommon KeySender Registerer
+set SourceFilesExtension=.cpp
+set HeaderFilesExtension=.hpp
 
 set BaseDirectory=%~dp0
 
@@ -107,6 +109,7 @@ set IsDynamicLibrary=False
         set SourceDirectory=%BaseDirectory%src
         set SourceFiles=Log KeySender System Time Window Registry RegistryKey
         set ProjectName=WinAPICommon
+        set PrecompiledHeader=Precompiled
         set IsStaticLibrary=True
     goto :SwitchCaseEnd
     :Case_1
@@ -202,11 +205,13 @@ echo . [^^!] Building %ProjectName% %ProjectTypeTitle% in %BuildMode% mode ...
 
 if not "%CustomBuildOperationFunction%"=="" goto :%CustomBuildOperationFunction%
 
+if not "%PrecompiledHeader%"=="" set PrecompiledHeader=-include %SourceDirectory%\%PrecompiledHeader%%HeaderFilesExtension%
+
 @REM Start the compiling process of current executable or static library project. Shared library projects does not supported yet.
 @REM Create their object files from their source files of the current project for the linking operation.
 @REM Source files used with their full paths. Relative paths do not used because can clickable in VSCode terminal in this way.
 for %%s in (%SourceFiles%) do (
-    %Compiler% %IncludeDirectories% %BuildOptions% -c %SourceDirectory%\%%s.cpp -o %ObjectOutputsDirectory%/%%s.o
+    %Compiler% %PrecompiledHeader% %IncludeDirectories% %BuildOptions% -c %SourceDirectory%\%%s%SourceFilesExtension% -o %ObjectOutputsDirectory%/%%s.o
 )
 
 @REM Start the linking process of current executable or static library project. Shared library projects does not supported yet.

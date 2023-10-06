@@ -2,9 +2,4 @@
 
 #pragma once
 
-namespace WCmn::Modules
-{
-    class IModule
-    {
-    };
-}
+#include <windows.h>

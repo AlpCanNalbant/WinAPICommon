@@ -1,9 +1,9 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
-namespace WCmn::Modules
+namespace WinCmn
 {
     template <Character T>
-    T *String::ToBuffer(const std::basic_string<T> &str) const
+    T *ToBuffer(const std::basic_string<T> &str)
     {
         const auto size = str.size();
         T buffer[size] = {'\0'};
@@ -21,24 +21,24 @@ namespace WCmn::Modules
     }
 
     template <Character T>
-    DWORD String::GetLength(const T *string, bool isMulti) const
+    DWORD GetStringLength(const T *buffer, bool countNull)
     {
-        return GetLength(string, false, isMulti);
+        DWORD i = 0;
+        while (buffer[i])
+        {
+            ++i;
+        }
+        return i + countNull;
     }
 
     template <Character T>
-    DWORD String::GetLengthCountNulls(const T *string, bool isMulti) const
+    DWORD GetMultiStringLength(const T *buffer, bool countNull)
     {
-        return GetLength(string, true, isMulti);
-    }
-
-    template <Character T>
-    DWORD String::GetLength(const T *string, bool isCountNulls, bool isMulti) const
-    {
-        slt_.IsCountNulls = isCountNulls;
-        slt_.IsMultiString = isMulti;
-        for (int i = 0; slt_(string[i]); ++i)
-            ;
-        return slt_.GetLength();
+        DWORD len = countNull;
+        for (int i = 0; buffer[i] || buffer[i + 1]; ++i)
+        {
+            len += static_cast<bool>(buffer[i]) + (!buffer[i] * countNull);
+        }
+        return len;
     }
 }

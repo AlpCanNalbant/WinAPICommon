@@ -2,15 +2,13 @@
 
 #pragma once
 
-#include <windows.h>
-
 #include "Log.hpp"
-#include "StringLoopTerminator.hpp"
+#include "Concepts.hpp"
 #include "RegistryKeyType.hpp"
 #include "RegistryValueType.hpp"
 #include "EventLogType.hpp"
 
-namespace WCmn
+namespace WinCmn
 {
     struct RegistryKey
     {
@@ -20,9 +18,9 @@ namespace WCmn
         ~RegistryKey();
         [[nodiscard]] bool IsOpen() const;
         bool SetValue(const std::wstring &name, const RegistryValueType type, const BYTE *data, const DWORD dataSize) const;
-        bool SetEventLogType(const EventLogType type, const std::wstring &name = L"TypesSupported", const RegistryValueType regType = RegistryValueType::DWord) const;
-        template <Character TChr = wchar_t>
-        bool SetString(const std::basic_string<std::remove_pointer_t<TChr>> &name, const RegistryStringType type, const TChr *stringData) const;
+        bool SetEventLogType(const EventLogType typeData, const std::wstring &name = L"TypesSupported", const RegistryValueType regType = RegistryValueType::DWord) const;
+        template <Character T = wchar_t>
+        bool SetString(const std::basic_string<std::remove_pointer_t<T>> &name, const RegistryStringType type, const T *stringData) const;
         bool Close();
 
         [[nodiscard]] explicit operator HKEY() const noexcept;

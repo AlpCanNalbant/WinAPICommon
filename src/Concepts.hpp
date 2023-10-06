@@ -6,7 +6,7 @@
 #include <concepts>
 #include <string>
 
-namespace WCmn
+namespace WinCmn
 {
     namespace Impl
     {

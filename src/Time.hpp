@@ -4,13 +4,7 @@
 
 #include <string>
 
-#include "IModule.hpp"
-
-namespace WCmn::Modules
+namespace WinCmn
 {
-    class Time : public IModule
-    {
-    public:
-        [[nodiscard]] std::wstring GetDate() const;
-    };
+    [[nodiscard]] std::wstring GetDate();
 }

@@ -2,9 +2,7 @@
 
 #pragma once
 
-#include <windows.h>
-
-namespace WCmn
+namespace WinCmn
 {
     enum class EventLogType : DWORD
     {

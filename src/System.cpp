@@ -3,9 +3,9 @@
 #include "System.hpp"
 #include "WinAPICommon.hpp"
 
-namespace WCmn::Modules
+namespace WinCmn
 {
-    std::wstring System::GetDesktopName() const
+    std::wstring GetDesktopName()
     {
         std::wstring deskName = L"default";
         HDESK inputDesktop = OpenInputDesktop(0, false, GENERIC_ALL);
@@ -21,18 +21,18 @@ namespace WCmn::Modules
         return deskName;
     }
 
-    std::wstring System::GetPCName() const
+    std::wstring GetPCName()
     {
         WCHAR lpBuffer[256] = {'\0'};
         DWORD nSize = sizeof(lpBuffer);
         if (!GetComputerNameW(lpBuffer, &nSize))
         {
-            WCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+            WinCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
         }
         return {lpBuffer};
     }
 
-    bool System::EnablePrivilegeValue(LPCTSTR lpszPrivilege, bool bEnablePrivilege) const
+    bool EnablePrivilegeValue(LPCTSTR lpszPrivilege, bool bEnablePrivilege)
     {
         HANDLE hToken;
         LUID luid;
@@ -41,13 +41,13 @@ namespace WCmn::Modules
 
         if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
         {
-            WCmn::Log->Error(L"OpenProcessToken error.", GetLastError());
+            WinCmn::Log->Error(L"OpenProcessToken error.", GetLastError());
             isSuccess = false;
         }
 
         if (!LookupPrivilegeValueW(NULL, lpszPrivilege, &luid)) // SE_DEBUG_NAME
         {
-            WCmn::Log->Error(L"LookupPrivilegeValue error.", GetLastError());
+            WinCmn::Log->Error(L"LookupPrivilegeValue error.", GetLastError());
             isSuccess = false;
         }
 
@@ -57,13 +57,13 @@ namespace WCmn::Modules
 
         if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
         {
-            WCmn::Log->Error(L"AdjustTokenPrivileges error.", GetLastError());
+            WinCmn::Log->Error(L"AdjustTokenPrivileges error.", GetLastError());
             isSuccess = false;
         }
 
         if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
         {
-            WCmn::Log->Error(L"The token does not have the specified privilege.", ERROR_NOT_ALL_ASSIGNED);
+            WinCmn::Log->Error(L"The token does not have the specified privilege.", ERROR_NOT_ALL_ASSIGNED);
             isSuccess = false;
         }
         if (hToken)
@@ -74,17 +74,17 @@ namespace WCmn::Modules
         return isSuccess;
     }
 
-    HANDLE System::OpenProcessFromID(DWORD processID) const
+    HANDLE OpenProcessFromID(DWORD processID)
     {
         if (EnablePrivilegeValue(SE_DEBUG_NAME, true))
         {
-            WCmn::Log->Error(L"Failed to obtain required privileges for openning the process.");
+            WinCmn::Log->Error(L"Failed to obtain required privileges for openning the process.");
         }
 
         HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processID);
         if (hProcess == NULL)
         {
-            WCmn::Log->Error(L"Failed to open process.", GetLastError());
+            WinCmn::Log->Error(L"Failed to open process.", GetLastError());
             return NULL;
         }
 

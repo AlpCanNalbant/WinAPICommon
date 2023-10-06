@@ -1,30 +1,29 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
-namespace WCmn::Modules
+namespace WinCmn
 {
-    template <Character TChr, template <typename> typename TStr>
-        requires std::derived_from<TStr<TChr>, std::basic_string<TChr>>
-    TStr<TChr> Path::GetRoot() const
+    template <Character T>
+    std::basic_string<T> GetBaseDirectory()
     {
-        if constexpr (std::same_as<TChr, wchar_t>)
+        if constexpr (std::same_as<T, wchar_t>)
         {
             WCHAR buffer[MAX_PATH] = {'\0'};
             if (!GetModuleFileNameW(nullptr, buffer, MAX_PATH))
             {
-                WCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+                WinCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
             }
             PathCchRemoveFileSpec(buffer, MAX_PATH);
             return {buffer};
         }
         else
         {
-            TChr buffer[MAX_PATH] = {'\0'};
+            T buffer[MAX_PATH] = {'\0'};
             if (!GetModuleFileNameA(nullptr, buffer, MAX_PATH))
             {
-                WCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+                WinCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
             }
 
-            TStr<TChr> path{buffer};
+            std::basic_string<T> path{buffer};
             return path.substr(0, path.find_last_of("\\/"));
         }
     }

@@ -3,18 +3,11 @@
 #pragma once
 
 #include <string>
-#include <windows.h>
 
-#include "IModule.hpp"
-
-namespace WCmn::Modules
+namespace WinCmn
 {
-    class System : public IModule
-    {
-    public:
-        [[nodiscard]] std::wstring GetDesktopName() const;
-        [[nodiscard]] std::wstring GetPCName() const;
-        bool EnablePrivilegeValue([[maybe_unused]] LPCTSTR lpszPrivilege, bool bEnablePrivilege) const;
-        [[nodiscard]] HANDLE OpenProcessFromID(DWORD processID) const;
-    };
+    [[nodiscard]] std::wstring GetDesktopName();
+    [[nodiscard]] std::wstring GetPCName();
+    bool EnablePrivilegeValue([[maybe_unused]] LPCTSTR lpszPrivilege, bool bEnablePrivilege);
+    [[nodiscard]] HANDLE OpenProcessFromID(DWORD processID);
 }

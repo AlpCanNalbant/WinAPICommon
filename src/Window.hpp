@@ -2,15 +2,7 @@
 
 #pragma once
 
-#include <windows.h>
-
-#include "IModule.hpp"
-
-namespace WCmn::Modules
+namespace WinCmn
 {
-    class Window : public IModule
-    {
-    public:
-        void Close(HWND hWnd) const;
-    };
+    void SafeClose(HWND hWnd);
 }

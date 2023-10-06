@@ -3,16 +3,16 @@
 #include "Window.hpp"
 #include "WinAPICommon.hpp"
 
-namespace WCmn::Modules
+namespace WinCmn
 {
-    void Window::Close(HWND hWnd) const
+    void SafeClose(HWND hWnd)
     {
         SendMessageW(hWnd, WM_CLOSE, 0, 0);
 
         DWORD accessDeniedErrCode = 5;
         if (GetLastError() == accessDeniedErrCode)
         {
-            WCmn::Log->Error(L"Failed to send close message.", accessDeniedErrCode);
+            WinCmn::Log->Error(L"Failed to send close message.", accessDeniedErrCode);
         }
     }
 }

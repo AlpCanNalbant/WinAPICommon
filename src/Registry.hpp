@@ -2,20 +2,12 @@
 
 #pragma once
 
-#include <windows.h>
 #include <string>
 
-#include "IModule.hpp"
 #include "RegistryKey.hpp"
 
-namespace WCmn::Modules
+namespace WinCmn
 {
-    class Registry : public IModule
-    {
-    public:
-        [[nodiscard]] RegistryKey OpenKey(const RegistryKeyType keyType, const std::wstring &subKeyName) const;
-
-    private:
-        [[nodiscard]] HKEY ToKeyHandle(const RegistryKeyType branch) const;
-    };
+    [[nodiscard]] RegistryKey OpenRegistryKey(const RegistryKeyType keyType, const std::wstring &subKeyName);
+    [[nodiscard]] HKEY ToKeyHandle(const RegistryKeyType branch);
 }

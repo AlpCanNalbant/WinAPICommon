@@ -4,9 +4,9 @@
 
 #include "Time.hpp"
 
-namespace WCmn::Modules
+namespace WinCmn
 {
-    std::wstring Time::GetDate() const
+    std::wstring GetDate()
     {
         const auto now = std::chrono::system_clock::now();
         const std::time_t t_c = std::chrono::system_clock::to_time_t(now);
