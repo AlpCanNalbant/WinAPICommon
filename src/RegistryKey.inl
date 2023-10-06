@@ -6,7 +6,7 @@ namespace WinCmn
     bool RegistryKey::SetString(const std::basic_string<std::remove_pointer_t<T>> &name, const RegistryStringType type, const T *stringData) const
     {
         if constexpr (const DWORD len = type != RegistryStringType::MultiSZ ? GetStringLength(stringData, true) : GetMultiStringLength(stringData, true);
-                      std::same_as<T, wchar_t>)
+                      std::is_same_v<T, wchar_t>)
         {
             if (RegSetValueExW(hKey_, name.c_str(), 0, static_cast<DWORD>(type), reinterpret_cast<LPCBYTE>(stringData), len * sizeof(T)) != ERROR_SUCCESS)
             {

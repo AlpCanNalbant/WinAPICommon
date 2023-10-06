@@ -5,7 +5,7 @@ namespace WinCmn
     template <Character T>
     std::basic_string<T> GetBaseDirectory()
     {
-        if constexpr (std::same_as<T, wchar_t>)
+        if constexpr (std::is_same_v<T, wchar_t>)
         {
             WCHAR buffer[MAX_PATH] = {'\0'};
             if (!GetModuleFileNameW(nullptr, buffer, MAX_PATH))

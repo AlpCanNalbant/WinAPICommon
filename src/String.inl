@@ -8,7 +8,7 @@ namespace WinCmn
         const auto size = str.size();
         T buffer[size] = {'\0'};
 
-        if constexpr (std::same_as<T, wchar_t>)
+        if constexpr (std::is_same_v<T, wchar_t>)
         {
             wcsncpy(buffer, str.c_str(), size);
             return buffer;
