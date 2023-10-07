@@ -174,9 +174,9 @@ set IncludeDirectories=%PrefixedIncludeDirectories%
 set StaticLibraries=%PrefixedStaticLibraries%
 set StaticLibraryDirectories=%PrefixedStaticLibraryDirectories%
 
-@REM Set the compiler variables of the static libraries for the linking process (executable KeyboardLocker projects only).
+@REM Set the compiler variables of the static libraries for the linking process.
 set StaticWin32Libraries=-lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32
-set StaticMinGWLibraries=-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread
+set StaticMinGWLibraries=-static-libgcc -static-libstdc++ -lpthread
 set AllStaticLibraries=%StaticLibraries% %StaticWin32Libraries% %StaticMinGWLibraries%
 
 @REM Set the variables of the debug mode building process.
@@ -216,7 +216,7 @@ for %%s in (%SourceFiles%) do (
 
 @REM Start the linking process of current executable or static library project. Shared library projects does not supported yet.
 if %IsLibrary%==False (
-    %Compiler% %StaticLibraryDirectories% %BuildOptions% -o %BinaryOutputsDirectory%/%ProjectName%.exe %ObjectFiles% %AllStaticLibraries%
+    %Compiler% %StaticLibraryDirectories% %BuildOptions% -o %BinaryOutputsDirectory%/%ProjectName%.exe %ObjectFiles% -static %AllStaticLibraries%
 ) else (
     %Archiver% rcs %BinaryOutputsDirectory%/lib%ProjectName%.a %ObjectFiles%
 )

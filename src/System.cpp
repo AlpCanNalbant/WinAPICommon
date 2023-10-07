@@ -75,7 +75,7 @@ namespace WinCmn
 
     HANDLE OpenProcessFromID(DWORD processID)
     {
-        if (EnablePrivilegeValue(SE_DEBUG_NAME, true))
+        if (!EnablePrivilegeValue(SE_DEBUG_NAME, true))
         {
             WinCmn::Log->Error(L"Failed to obtain required privileges for openning the process.");
         }
