@@ -19,7 +19,24 @@ namespace WinCmn
 
             if (!OutputFile.empty())
             {
-                CreateOutputFile(mark, explanation);
+                // Append instead of overwrite.
+                fileStream_.open(std::filesystem::path(OutputFile), std::ios_base::app);
+#ifndef NDEBUG
+                if (!fileStream_.is_open())
+                {
+                    std::wcout << "File stream cannot be opened.\n";
+                    return;
+                }
+#endif
+                fileStream_ << WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
+                fileStream_.close();
+#ifndef NDEBUG
+                if (fileStream_.fail())
+                {
+                    std::wcout << "An error occurred while closing the file stream.\n";
+                    return;
+                }
+#endif
             }
 
 #ifndef NDEBUG
@@ -54,7 +71,8 @@ namespace WinCmn
                 WriteLine(ErrorMark, reason + L" ~ Error: " + ToErrorMessage(errorCode_));
                 break;
             default:
-                break;
+                WriteLine(ErrorMark, L"Invalid error type.");
+                return;
             }
         }
 
@@ -68,27 +86,6 @@ namespace WinCmn
             _com_error errorHandler{errorCode};
             LPCTSTR errorText = errorHandler.ErrorMessage();
             return {errorText};
-        }
-
-        void Log::CreateOutputFile(const wchar_t *mark, const std::wstring &explanation)
-        {
-            fileStream_.open(std::filesystem::path(OutputFile), std::ios_base::app); // Append instead of overwrite
-#ifndef NDEBUG
-            if (!fileStream_.is_open())
-            {
-                std::wcout << "File stream cannot be opened.\n";
-                return;
-            }
-#endif
-            fileStream_ << WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
-            fileStream_.close();
-#ifndef NDEBUG
-            if (fileStream_.fail())
-            {
-                std::wcout << "An error occurred while closing the file stream.\n";
-                return;
-            }
-#endif
         }
     }
 }
