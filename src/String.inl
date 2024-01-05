@@ -3,21 +3,17 @@
 namespace WinCmn
 {
     template <Character T>
-    T *ToBuffer(const std::basic_string<T> &str)
+    std::shared_ptr<T> ToBuffer(const std::basic_string<T> &str)
     {
-        const auto size = str.size();
-        T buffer[size] = {'\0'};
+        return ToBuffer(static_cast<const std::basic_string<T> &&>(str));
+    }
 
-        if constexpr (std::is_same_v<T, wchar_t>)
-        {
-            wcsncpy(buffer, str.c_str(), size);
-            return buffer;
-        }
-        else
-        {
-            strncpy(buffer, str.c_str(), size);
-            return buffer;
-        }
+    template <Character T>
+    std::shared_ptr<T> ToBuffer(const std::basic_string<T> &&str)
+    {
+        T *buffer = static_cast<T *>(std::malloc(sizeof(T) * (str.size() + 1)));
+        std::memcpy(buffer, str.data(), sizeof(T) * (str.size() + 1));
+        return std::shared_ptr<T>{buffer, [](T *p) { std::free(p); }};
     }
 
     template <Character T>
