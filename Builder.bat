@@ -107,7 +107,7 @@ set IsDynamicLibrary=False
     goto :SwitchCaseEnd
     :Case_0
         set SourceDirectory=%BaseDirectory%src
-        set SourceFiles=Log KeySender System Time Window Registry RegistryKey
+        set SourceFiles=String Log KeySender System Time Window Registry RegistryKey
         set ProjectName=WinAPICommon
         set PrecompiledHeader=Precompiled
         set IsStaticLibrary=True

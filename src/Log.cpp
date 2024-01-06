@@ -4,8 +4,9 @@
 #include <filesystem>
 #include <comdef.h>
 
-#include "WinAPICommon.hpp"
 #include "Log.hpp"
+#include "Time.hpp"
+#include "String.hpp"
 
 namespace WinCmn
 {
@@ -13,9 +14,9 @@ namespace WinCmn
 
     namespace Impl
     {
-        void Log::WriteLine(const wchar_t *mark, const std::wstring &explanation)
+        const Log &Log::WriteLine(const wchar_t *mark, const std::wstring &explanation) const
         {
-#define WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS mark << L' ' << explanation << L" ~ Happened at: " << WinCmn::GetDate() << L".\n";
+#define WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS mark << L' ' << explanation << L'\n';
 
             if (!OutputFile.empty())
             {
@@ -25,7 +26,7 @@ namespace WinCmn
                 if (!fileStream_.is_open())
                 {
                     std::wcout << "File stream cannot be opened.\n";
-                    return;
+                    return *this;
                 }
 #endif
                 fileStream_ << WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
@@ -34,7 +35,7 @@ namespace WinCmn
                 if (fileStream_.fail())
                 {
                     std::wcout << "An error occurred while closing the file stream.\n";
-                    return;
+                    return *this;
                 }
 #endif
             }
@@ -42,37 +43,34 @@ namespace WinCmn
 #ifndef NDEBUG
             std::wcout << WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
 #endif
+            return *this;
         }
 
-        void Log::Info(const std::wstring &explanation)
+        const Log &Log::Info(const std::wstring &explanation) const
         {
             WriteLine(InfoMark, explanation);
+            Sub({{L"At", GetDate()}});
+            return *this;
         }
 
-        void Log::Error(const std::wstring &reason)
+        const Log &Log::Error(const std::wstring &reason, const std::source_location &location) const
         {
-            Error(reason, ErrorType::Normal);
+            Error(reason, ErrorType::Normal, location);
+            return *this;
         }
 
-        void Log::Error(const std::wstring &reason, const HRESULT errorCode)
+        const Log &Log::Error(const std::wstring &reason, const HRESULT errorCode, const std::source_location &location) const
         {
             errorCode_ = errorCode;
-            Error(reason, ErrorType::WinAPI);
+            Error(reason, ErrorType::WinAPI, location);
+            return *this;
         }
 
-        void Log::Error(const std::wstring &reason, const ErrorType type)
+        void Log::Sub(std::initializer_list<std::wstring[2]> messages) const
         {
-            switch (type)
+            for (const auto &msg : messages)
             {
-            case ErrorType::Normal:
-                WriteLine(ErrorMark, reason);
-                break;
-            case ErrorType::WinAPI:
-                WriteLine(ErrorMark, reason + L" ~ Error: " + ToErrorMessage(errorCode_));
-                break;
-            default:
-                WriteLine(ErrorMark, L"Invalid error type.");
-                return;
+                WriteLine(L"    |___", msg[0] + L": " + msg[1]);
             }
         }
 
@@ -86,6 +84,24 @@ namespace WinCmn
             _com_error errorHandler{errorCode};
             LPCTSTR errorText = errorHandler.ErrorMessage();
             return {errorText};
+        }
+
+        void Log::Error(const std::wstring &reason, const ErrorType type, const std::source_location &location) const
+        {
+            switch (type)
+            {
+            case ErrorType::Normal:
+                WriteLine(ErrorMark, reason);
+                break;
+            case ErrorType::WinAPI:
+                WriteLine(ErrorMark, reason);
+                Sub({{L"Error", ToErrorMessage(errorCode_)}});
+                break;
+            default:
+                WriteLine(ErrorMark, L"Invalid error type.");
+                return;
+            }
+            Sub({{L"Line", std::to_wstring(location.line())}, {L"File", ToWide(location.file_name())}, {L"At", GetDate()}});
         }
     }
 }
