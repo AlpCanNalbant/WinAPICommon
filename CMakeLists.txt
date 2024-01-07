@@ -1,0 +1,17 @@
+project(WinAPICommon LANGUAGES CXX)
+
+file(GLOB_RECURSE WIN_API_COMMON_HEADER "./src/*.hpp")
+file(GLOB_RECURSE WIN_API_COMMON_INLINE "./src/*.inl")
+file(GLOB_RECURSE WIN_API_COMMON_SOURCE "./src/*.cpp")
+
+add_library(${PROJECT_NAME} STATIC ${WIN_API_COMMON_HEADER} ${WIN_API_COMMON_INLINE} ${WIN_API_COMMON_SOURCE})
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME WinAPICommon)
+target_link_libraries(${PROJECT_NAME} INTERFACE -lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -static-libgcc -static-libstdc++ -lpthread)
+target_precompile_headers(${PROJECT_NAME} PUBLIC "src/Precompiled.hpp")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:_DEBUG>" "$<$<CONFIG:RELEASE>:NDEBUG>" _UNICODE UNICODE)
+target_include_directories(${PROJECT_NAME} INTERFACE "./src")
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    target_compile_options(${PROJECT_NAME} PUBLIC -m64 -municode)
+else()
+    target_compile_options(${PROJECT_NAME} PUBLIC -m64 -municode -Wall -Wextra -Wformat=2 -Wunused -Wpedantic -std=c++20)
+endif()
