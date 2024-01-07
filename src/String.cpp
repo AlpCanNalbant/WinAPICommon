@@ -16,7 +16,17 @@ namespace WinCmn
         return (StringConverter{}).to_bytes(wide);
     }
 
+    std::string ToNarrow(const wchar_t *wide)
+    {
+        return (StringConverter{}).to_bytes(wide);
+    }
+
     std::wstring ToWide(const std::string &narrow)
+    {
+        return (StringConverter{}).from_bytes(narrow);
+    }
+
+    std::wstring ToWide(const char *narrow)
     {
         return (StringConverter{}).from_bytes(narrow);
     }
