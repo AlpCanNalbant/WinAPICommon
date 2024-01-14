@@ -5,10 +5,8 @@
 #include <windows.h>
 
 #include "Log.hpp"
-#include "FileSystem.hpp"
 #include "String.hpp"
 #include "System.hpp"
-#include "Time.hpp"
-#include "Window.hpp"
+#include "FileSystem.hpp"
 #include "KeySender.hpp"
 #include "Registry.hpp"

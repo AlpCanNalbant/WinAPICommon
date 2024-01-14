@@ -16,6 +16,44 @@ namespace WinCmn
         return std::shared_ptr<T>{buffer, [](T *p) { std::free(p); }};
     }
 
+    Impl::StringConverter::byte_string ToString(const auto &wide)
+        requires Impl::IsConvertibleWString<decltype(wide)>
+    {
+        return (Impl::StringConverter{}).to_bytes(wide);
+    }
+
+    template <typename T>
+    Impl::ToStringIfResult<T> ToStringIf(const T &string)
+    {
+        if constexpr (Impl::IsWideString<T>)
+        {
+            return (Impl::StringConverter{}).to_bytes(string);
+        }
+        else
+        {
+            return string;
+        }
+    }
+
+    Impl::StringConverter::wide_string ToWString(const auto &narrow)
+        requires Impl::IsConvertibleString<decltype(narrow)>
+    {
+        return (Impl::StringConverter{}).from_bytes(narrow);
+    }
+
+    template <typename T>
+    Impl::ToWStringIfResult<T> ToWStringIf(const T &string)
+    {
+        if constexpr (Impl::IsByteString<T>)
+        {
+            return (Impl::StringConverter{}).from_bytes(string);
+        }
+        else
+        {
+            return string;
+        }
+    }
+
     template <Character T>
     DWORD GetStringLength(const T *buffer, bool countNull)
     {

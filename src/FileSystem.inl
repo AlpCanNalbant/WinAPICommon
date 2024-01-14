@@ -10,7 +10,7 @@ namespace WinCmn
             WCHAR buffer[MAX_PATH] = {'\0'};
             if (!GetModuleFileNameW(nullptr, buffer, MAX_PATH))
             {
-                WinCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+                Log->Error(L"Failed to retrieving the computer name.", GetLastError());
             }
             PathCchRemoveFileSpec(buffer, MAX_PATH);
             return {buffer};
@@ -20,7 +20,7 @@ namespace WinCmn
             T buffer[MAX_PATH] = {'\0'};
             if (!GetModuleFileNameA(nullptr, buffer, MAX_PATH))
             {
-                WinCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+                Log->Error(L"Failed to retrieving the computer name.", GetLastError());
             }
 
             std::basic_string<T> path{buffer};
@@ -29,16 +29,16 @@ namespace WinCmn
     }
 
     template <Character T>
-    bool EquivalentFiles(const T *const file1, const T *const file2)
+    bool IsSameFile(const T *const file1, const T *const file2)
     {
-#define WINCMN_FILESYSTEM_EQUIVALENTFILES_OPEN_ERROR_LOG(file) WinCmn::Log->Error(L"Equivalence comparison file is cannot opened.").Sub({{{L"ComparisonFile"}, {std::is_same_v<T, char> ? WinCmn::ToWide(file) : file}}});
+#define WINCMN_FILESYSTEM_EQUIVALENTFILES_OPEN_ERROR_LOG(file) Log->Error(L"Equivalence comparison file is cannot opened.").Sub({{{L"ComparisonFile"}, {ToWStringIf(file)}}});
         std::basic_ifstream<T> stream1{file1, std::basic_ifstream<T>::binary | std::basic_ifstream<T>::ate};
         if (!stream1.is_open())
         {
             WINCMN_FILESYSTEM_EQUIVALENTFILES_OPEN_ERROR_LOG(file1)
             return false;
         }
-        std::basic_ifstream<T> stream2{file2, std::basic_ifstream<T>::binary | std::basic_ifstream<T>:ate};
+        std::basic_ifstream<T> stream2{file2, std::basic_ifstream<T>::binary | std::basic_ifstream<T>::ate};
         if (!stream2.is_open())
         {
             WINCMN_FILESYSTEM_EQUIVALENTFILES_OPEN_ERROR_LOG(file2)

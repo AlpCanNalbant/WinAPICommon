@@ -4,6 +4,14 @@
 
 namespace WinCmn
 {
+    std::wstring GetDate()
+    {
+        const auto now = std::chrono::system_clock::now();
+        const std::time_t t_c = std::chrono::system_clock::to_time_t(now);
+        const std::wstring dateStr{_wctime64(&t_c)};
+        return dateStr.substr(0, dateStr.find_last_of(L'\n'));
+    }
+
     std::wstring GetDesktopName()
     {
         std::wstring deskName = L"default";
@@ -26,7 +34,7 @@ namespace WinCmn
         DWORD nSize = sizeof(lpBuffer);
         if (!GetComputerNameW(lpBuffer, &nSize))
         {
-            WinCmn::Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+            Log->Error(L"Failed to retrieving the computer name.", GetLastError());
         }
         return {lpBuffer};
     }
@@ -40,13 +48,13 @@ namespace WinCmn
 
         if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
         {
-            WinCmn::Log->Error(L"OpenProcessToken error.", GetLastError());
+            Log->Error(L"OpenProcessToken error.", GetLastError());
             isSuccess = false;
         }
 
         if (!LookupPrivilegeValueW(NULL, lpszPrivilege, &luid)) // SE_DEBUG_NAME
         {
-            WinCmn::Log->Error(L"LookupPrivilegeValue error.", GetLastError());
+            Log->Error(L"LookupPrivilegeValue error.", GetLastError());
             isSuccess = false;
         }
 
@@ -56,13 +64,13 @@ namespace WinCmn
 
         if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
         {
-            WinCmn::Log->Error(L"AdjustTokenPrivileges error.", GetLastError());
+            Log->Error(L"AdjustTokenPrivileges error.", GetLastError());
             isSuccess = false;
         }
 
         if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
         {
-            WinCmn::Log->Error(L"The token does not have the specified privilege.", ERROR_NOT_ALL_ASSIGNED);
+            Log->Error(L"The token does not have the specified privilege.", ERROR_NOT_ALL_ASSIGNED);
             isSuccess = false;
         }
         if (hToken)
@@ -77,16 +85,27 @@ namespace WinCmn
     {
         if (!EnablePrivilegeValue(SE_DEBUG_NAME, true))
         {
-            WinCmn::Log->Error(L"Failed to obtain required privileges for openning the process.");
+            Log->Error(L"Failed to obtain required privileges for openning the process.");
         }
 
         HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processID);
         if (hProcess == NULL)
         {
-            WinCmn::Log->Error(L"Failed to open process.", GetLastError());
+            Log->Error(L"Failed to open process.", GetLastError());
             return NULL;
         }
 
         return hProcess;
+    }
+
+    void CloseWindow(HWND hWnd)
+    {
+        SendMessageW(hWnd, WM_CLOSE, 0, 0);
+
+        DWORD accessDeniedErrCode = 5;
+        if (GetLastError() == accessDeniedErrCode)
+        {
+            Log->Error(L"Failed to send close message.", accessDeniedErrCode);
+        }
     }
 }

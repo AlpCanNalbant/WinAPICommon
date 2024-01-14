@@ -5,7 +5,7 @@
 #include <comdef.h>
 
 #include "Log.hpp"
-#include "Time.hpp"
+#include "System.hpp"
 #include "String.hpp"
 
 namespace WinCmn
@@ -101,7 +101,7 @@ namespace WinCmn
                 WriteLine(ErrorMark, L"Invalid error type.");
                 return;
             }
-            Sub({{L"Line", std::to_wstring(location.line())}, {L"File", ToWide(location.file_name())}, {L"At", GetDate()}});
+            Sub({{L"Line", std::to_wstring(location.line())}, {L"File", ToWString(location.file_name())}, {L"At", GetDate()}});
         }
     }
 }

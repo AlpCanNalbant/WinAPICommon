@@ -7,7 +7,7 @@ namespace WinCmn
         : string_{string}, IsCountNulls{isCountNulls}, IsMultiString{isMultiString} {}
 
     template <Character T>
-    inline bool BasicStringCounter<T>::IsCounted() const noexcept
+    bool BasicStringCounter<T>::IsCounted() const noexcept
     {
         return isCounted_;
     }

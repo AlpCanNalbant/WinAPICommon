@@ -1,10 +1,8 @@
 project(WinAPICommon LANGUAGES CXX)
 
-file(GLOB_RECURSE WIN_API_COMMON_HEADER "./src/*.hpp")
-file(GLOB_RECURSE WIN_API_COMMON_INLINE "./src/*.inl")
-file(GLOB_RECURSE WIN_API_COMMON_SOURCE "./src/*.cpp")
+file(GLOB_RECURSE WIN_API_COMMON_SOURCE CONFIGURE_DEPENDS "./src/*.hpp" "./src/*.inl" "./src/*.cpp")
 
-add_library(${PROJECT_NAME} STATIC ${WIN_API_COMMON_HEADER} ${WIN_API_COMMON_INLINE} ${WIN_API_COMMON_SOURCE})
+add_library(${PROJECT_NAME} STATIC ${WIN_API_COMMON_SOURCE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME WinAPICommon)
 target_link_libraries(${PROJECT_NAME} INTERFACE -lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -static-libgcc -static-libstdc++ -lpthread)
 target_precompile_headers(${PROJECT_NAME} PUBLIC "src/Precompiled.hpp")
