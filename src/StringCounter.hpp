@@ -4,7 +4,7 @@
 
 #include "Concepts.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
     template <Character T>
     struct BasicStringCounter

@@ -4,8 +4,8 @@
 
 #include "RegistryKey.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
-    [[nodiscard]] RegistryKey OpenRegistryKey(const RegistryKeyType keyType, const std::wstring &subKeyName);
+    [[nodiscard]] RegistryKey OpenRegistryKey(const RegistryKeyType keyType, std::wstring_view subKeyName);
     [[nodiscard]] HKEY ToKeyHandle(const RegistryKeyType branch);
 }

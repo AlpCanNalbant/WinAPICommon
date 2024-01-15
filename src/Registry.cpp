@@ -2,12 +2,12 @@
 
 #include "Registry.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
-    RegistryKey OpenRegistryKey(const RegistryKeyType keyType, const std::wstring &subKeyName)
+    RegistryKey OpenRegistryKey(const RegistryKeyType keyType, std::wstring_view subKeyName)
     {
         HKEY hKey = ToKeyHandle(keyType);
-        LPCWSTR lpSubKey = subKeyName.c_str();
+        LPCWSTR lpSubKey = subKeyName.data();
 
         const auto isSuccess = RegCreateKeyExW(hKey, lpSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
         if (isSuccess != ERROR_SUCCESS)

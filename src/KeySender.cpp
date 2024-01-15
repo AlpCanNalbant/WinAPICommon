@@ -3,12 +3,12 @@
 #include "KeySender.hpp"
 #include "Log.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
     KeySender::KeySender()
         : KeySender({}, {}) {}
 
-    KeySender::KeySender(const WinCmn::Key key, const float delayInSeconds)
+    KeySender::KeySender(const Wcm::Key key, const float delayInSeconds)
         : Key{key}, Delay{delayInSeconds}
     {
         ZeroMemory(inputs_, sizeof(inputs_));

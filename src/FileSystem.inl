@@ -1,9 +1,9 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
-namespace WinCmn
+namespace Wcm
 {
     template <Character T>
-    std::basic_string<T> GetBaseDirectory()
+    std::filesystem::path GetBaseDirectory()
     {
         if constexpr (std::is_same_v<T, wchar_t>)
         {
@@ -31,18 +31,19 @@ namespace WinCmn
     template <Character T>
     bool IsSameFile(const T *const file1, const T *const file2)
     {
-#define WINCMN_FILESYSTEM_EQUIVALENTFILES_OPEN_ERROR_LOG(file) Log->Error(L"Equivalence comparison file is cannot opened.").Sub({{{L"ComparisonFile"}, {ToWStringIf(file)}}});
+#define WCM_FILESYSTEM_ISSAMEFILE_OPEN_ERROR_LOG(file) Log->Error(L"Equivalence comparison file is cannot opened.").Sub({{{L"ComparisonFile"}, {ToWStringIf(file)}}})
         std::basic_ifstream<T> stream1{file1, std::basic_ifstream<T>::binary | std::basic_ifstream<T>::ate};
         if (!stream1.is_open())
         {
-            WINCMN_FILESYSTEM_EQUIVALENTFILES_OPEN_ERROR_LOG(file1)
+            WCM_FILESYSTEM_ISSAMEFILE_OPEN_ERROR_LOG(file1);
             return false;
         }
         std::basic_ifstream<T> stream2{file2, std::basic_ifstream<T>::binary | std::basic_ifstream<T>::ate};
         if (!stream2.is_open())
         {
-            WINCMN_FILESYSTEM_EQUIVALENTFILES_OPEN_ERROR_LOG(file2)
+            WCM_FILESYSTEM_ISSAMEFILE_OPEN_ERROR_LOG(file2);
             return false;
+
         }
         if (stream1.tellg() != stream2.tellg())
         {
@@ -50,5 +51,11 @@ namespace WinCmn
         }
         stream1.seekg(0, std::basic_ifstream<T>::beg); stream2.seekg(0, std::basic_ifstream<T>::beg);
         return std::equal(std::istreambuf_iterator<T>{stream1.rdbuf()}, std::istreambuf_iterator<T>{}, std::istreambuf_iterator<T>{stream2.rdbuf()});
+    }
+
+    template <Character T>
+    bool IsSameFile(const std::basic_string<T> &file1, const std::basic_string<T> &file2)
+    {
+        return IsSameFile(file1.c_str(), file2.c_str());
     }
 }

@@ -2,7 +2,7 @@
 
 #include "WinAPICommon.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
     RegistryKey::RegistryKey(HKEY hKey, const RegistryKeyType type)
         : Type{type}, hKey_{hKey} {}
@@ -20,18 +20,18 @@ namespace WinCmn
         return hKey_ != nullptr;
     }
 
-    bool RegistryKey::SetValue(const std::wstring &name, const RegistryValueType type, const BYTE *data, const DWORD dataSize) const
+    bool RegistryKey::SetValue(std::wstring_view name, const RegistryValueType type, const BYTE *data, const DWORD dataSize) const
     {
-        const auto isSuccess = RegSetValueExW(hKey_, name.c_str(), 0, static_cast<DWORD>(type), data, dataSize);
+        const auto isSuccess = RegSetValueExW(hKey_, name.data(), 0, static_cast<DWORD>(type), data, dataSize);
         if (isSuccess != ERROR_SUCCESS)
         {
-            Log->Error(L"Value of registry key could not be set. Name is " + name, GetLastError());
+            Log->Error(L"Value of registry key could not be set.", GetLastError()).Sub({{{L"Name"}, {name.data()}}});
             return false;
         }
         return true;
     }
 
-    bool RegistryKey::SetEventLogType(const EventLogType typeData, const std::wstring &name, const RegistryValueType regType) const
+    bool RegistryKey::SetEventLogType(const EventLogType typeData, std::wstring_view name, const RegistryValueType regType) const
     {
         return SetValue(name, regType, reinterpret_cast<LPCBYTE>(&typeData), sizeof(typeData));
     }

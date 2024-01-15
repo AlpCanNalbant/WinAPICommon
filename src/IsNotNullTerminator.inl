@@ -1,6 +1,6 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
-namespace WinCmn
+namespace Wcm
 {
     namespace Impl
     {

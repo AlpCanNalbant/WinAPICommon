@@ -4,7 +4,7 @@
 
 #include <string>
 
-namespace WinCmn
+namespace Wcm
 {
     [[nodiscard]] std::wstring GetDate();
     [[nodiscard]] std::wstring GetDesktopName();

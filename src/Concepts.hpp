@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace WinCmn
+namespace Wcm
 {
     namespace Impl
     {

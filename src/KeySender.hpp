@@ -6,7 +6,7 @@
 
 #include "Key.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
     class KeySender
     {
@@ -15,7 +15,7 @@ namespace WinCmn
         float Delay;
 
         KeySender();
-        KeySender(const WinCmn::Key key, const float delayInSeconds = 0.0f);
+        KeySender(const Wcm::Key key, const float delayInSeconds = 0.0f);
 
         void ResetTiming() const noexcept;
         bool Send() const noexcept;

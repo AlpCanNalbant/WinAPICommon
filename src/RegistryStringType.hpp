@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace WinCmn
+namespace Wcm
 {
     enum class RegistryStringType : DWORD
     {

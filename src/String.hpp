@@ -9,7 +9,7 @@
 #include <codecvt>
 #include "Concepts.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
     namespace Impl
     {
@@ -31,9 +31,7 @@ namespace WinCmn
     }
 
     template <Character T>
-    [[nodiscard]] std::shared_ptr<T> ToBuffer(const std::basic_string<T> &str);
-    template <Character T>
-    [[nodiscard]] std::shared_ptr<T> ToBuffer(const std::basic_string<T> &&str);
+    [[nodiscard]] std::shared_ptr<T> ToBuffer(std::basic_string_view<T> str);
     [[nodiscard]] Impl::StringConverter::byte_string ToString(const auto &wide)
         requires Impl::IsConvertibleWString<decltype(wide)>;
     template <typename T>

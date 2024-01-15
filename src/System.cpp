@@ -2,7 +2,7 @@
 
 #include "WinAPICommon.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
     std::wstring GetDate()
     {

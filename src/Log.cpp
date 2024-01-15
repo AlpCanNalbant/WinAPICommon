@@ -8,16 +8,15 @@
 #include "System.hpp"
 #include "String.hpp"
 
-namespace WinCmn
+namespace Wcm
 {
     extern const std::unique_ptr<Impl::Log> Log = std::make_unique<Impl::Log>();
 
     namespace Impl
     {
-        const Log &Log::WriteLine(const wchar_t *mark, const std::wstring &explanation) const
+        const Log &Log::WriteLine(const wchar_t *mark, std::wstring_view explanation) const
         {
-#define WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS mark << L' ' << explanation << L'\n';
-
+#define WCM_LOG_WRITELINE_STREAM_STRING_INSERTERS mark << L' ' << explanation << L'\n'
             if (!OutputFile.empty())
             {
                 // Append instead of overwrite.
@@ -29,7 +28,7 @@ namespace WinCmn
                     return *this;
                 }
 #endif
-                fileStream_ << WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
+                fileStream_ << WCM_LOG_WRITELINE_STREAM_STRING_INSERTERS;
                 fileStream_.close();
 #ifndef NDEBUG
                 if (fileStream_.fail())
@@ -41,36 +40,36 @@ namespace WinCmn
             }
 
 #ifndef NDEBUG
-            std::wcout << WINCMN_LOG_WRITELINE_STREAM_STRING_INSERTERS;
+            std::wcout << WCM_LOG_WRITELINE_STREAM_STRING_INSERTERS;
 #endif
             return *this;
         }
 
-        const Log &Log::Info(const std::wstring &explanation) const
+        const Log &Log::Info(std::wstring_view explanation) const
         {
             WriteLine(InfoMark, explanation);
             Sub({{L"At", GetDate()}});
             return *this;
         }
 
-        const Log &Log::Error(const std::wstring &reason, const std::source_location &location) const
+        const Log &Log::Error(std::wstring_view reason, const std::source_location &location) const
         {
             Error(reason, ErrorType::Normal, location);
             return *this;
         }
 
-        const Log &Log::Error(const std::wstring &reason, const HRESULT errorCode, const std::source_location &location) const
+        const Log &Log::Error(std::wstring_view reason, const HRESULT errorCode, const std::source_location &location) const
         {
             errorCode_ = errorCode;
             Error(reason, ErrorType::WinAPI, location);
             return *this;
         }
 
-        void Log::Sub(std::initializer_list<std::wstring[2]> messages) const
+        void Log::Sub(std::initializer_list<std::wstring_view[2]> messages) const
         {
-            for (const auto &msg : messages)
+            for (auto msg : messages)
             {
-                WriteLine(L"    |___", msg[0] + L": " + msg[1]);
+                WriteLine(L"    |___", std::wstring{msg[0].data()} + L": " + msg[1].data());
             }
         }
 
@@ -86,7 +85,7 @@ namespace WinCmn
             return {errorText};
         }
 
-        void Log::Error(const std::wstring &reason, const ErrorType type, const std::source_location &location) const
+        void Log::Error(std::wstring_view reason, const ErrorType type, const std::source_location &location) const
         {
             switch (type)
             {

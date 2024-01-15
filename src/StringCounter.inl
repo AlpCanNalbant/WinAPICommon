@@ -1,6 +1,6 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
-namespace WinCmn
+namespace Wcm
 {
     template <Character T>
     BasicStringCounter<T>::BasicStringCounter(T *string, const bool isCountNulls, const bool isMultiString)

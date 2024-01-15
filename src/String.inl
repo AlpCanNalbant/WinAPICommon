@@ -1,15 +1,9 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
-namespace WinCmn
+namespace Wcm
 {
     template <Character T>
-    std::shared_ptr<T> ToBuffer(const std::basic_string<T> &str)
-    {
-        return ToBuffer(static_cast<const std::basic_string<T> &&>(str));
-    }
-
-    template <Character T>
-    std::shared_ptr<T> ToBuffer(const std::basic_string<T> &&str)
+    std::shared_ptr<T> ToBuffer(std::basic_string_view<T> str)
     {
         T *buffer = static_cast<T *>(std::malloc(sizeof(T) * (str.size() + 1)));
         std::memcpy(buffer, str.data(), sizeof(T) * (str.size() + 1));
