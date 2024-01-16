@@ -10,7 +10,7 @@ namespace Wcm
             WCHAR buffer[MAX_PATH] = {'\0'};
             if (!GetModuleFileNameW(nullptr, buffer, MAX_PATH))
             {
-                Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+                Log->Error("Failed to retrieving the computer name.", GetLastError());
             }
             PathCchRemoveFileSpec(buffer, MAX_PATH);
             return {buffer};
@@ -20,7 +20,7 @@ namespace Wcm
             T buffer[MAX_PATH] = {'\0'};
             if (!GetModuleFileNameA(nullptr, buffer, MAX_PATH))
             {
-                Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+                Log->Error("Failed to retrieving the computer name.", GetLastError());
             }
 
             std::basic_string<T> path{buffer};
@@ -31,7 +31,7 @@ namespace Wcm
     template <Character T>
     bool IsSameFile(const T *const file1, const T *const file2)
     {
-#define WCM_FILESYSTEM_ISSAMEFILE_OPEN_ERROR_LOG(file) Log->Error(L"Equivalence comparison file is cannot opened.").Sub({{{L"ComparisonFile"}, {ToWStringIf(file)}}})
+#define WCM_FILESYSTEM_ISSAMEFILE_OPEN_ERROR_LOG(file) Log->Error("Equivalence comparison file is cannot opened.").Sub("ComparisonFile", file)
         std::basic_ifstream<T> stream1{file1, std::basic_ifstream<T>::binary | std::basic_ifstream<T>::ate};
         if (!stream1.is_open())
         {

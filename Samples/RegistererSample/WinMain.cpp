@@ -5,9 +5,9 @@
 int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t *argv[])
 {
     Wcm::Log->OutputFile = Wcm::GetBaseDirectory() / "Registerer.log";
-    Wcm::Log->Info(L"The Registerer process is has been started by the user.");
+    Wcm::Log->Info("The Registerer process is has been started by the user.");
 
-    Wcm::Log->Info(L"Registering some values to the Windows registry now...");
+    Wcm::Log->Info("Registering some values to the Windows registry now...");
 
     const auto key = Wcm::OpenRegistryKey(Wcm::RegistryKeyType::CurrentUser, L"Environment");
     if (!key.IsOpen())
@@ -39,15 +39,15 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t *argv[])
     int retCode;
     if (keyValSetFlags.all())
     {
-        Wcm::Log->Info(L"Values successfully registered to the Windows registry.");
+        Wcm::Log->Info("Values successfully registered to the Windows registry.");
         retCode = 0;
     }
     else
     {
-        Wcm::Log->Error(L"Values unsuccessfully registered to the Windows registry.");
+        Wcm::Log->Error("Values unsuccessfully registered to the Windows registry.");
         retCode = 1;
     }
 
-    Wcm::Log->Info(L"The Registerer process is has been ended.");
+    Wcm::Log->Info("The Registerer process is has been ended.");
     return retCode;
 }

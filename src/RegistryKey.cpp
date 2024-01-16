@@ -25,7 +25,7 @@ namespace Wcm
         const auto isSuccess = RegSetValueExW(hKey_, name.data(), 0, static_cast<DWORD>(type), data, dataSize);
         if (isSuccess != ERROR_SUCCESS)
         {
-            Log->Error(L"Value of registry key could not be set.", GetLastError()).Sub({{{L"Name"}, {name.data()}}});
+            Log->Error("Value of registry key could not be set.", GetLastError()).Sub("Name", name);
             return false;
         }
         return true;
@@ -41,7 +41,7 @@ namespace Wcm
         const auto isSuccess = RegCloseKey(hKey_);
         if (isSuccess != ERROR_SUCCESS)
         {
-            Log->Error(L"Registry key could not be closed.", GetLastError());
+            Log->Error("Registry key could not be closed.", GetLastError());
             return false;
         }
         hKey_ = nullptr;

@@ -54,7 +54,7 @@ namespace Wcm
         const UINT sentResult = ::SendInput(ARRAYSIZE(inputs_), const_cast<LPINPUT>(inputs_), sizeof(INPUT));
         if (sentResult != ARRAYSIZE(inputs_))
         {
-            Log->Error(L"SendInput failed to send.", GetLastError());
+            Log->Error("SendInput failed to send.", GetLastError());
             return false;
         }
         return true;

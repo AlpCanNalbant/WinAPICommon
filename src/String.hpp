@@ -19,15 +19,15 @@ namespace Wcm
         template <typename T>
         constexpr bool IsConvertibleString = requires(T narrow) { { (StringConverter{}).from_bytes(narrow) } -> std::same_as<StringConverter::wide_string>; };
         template <typename T>
-        constexpr bool IsByteString = std::disjunction_v<std::is_same<T, StringConverter::byte_string>, std::is_same<T, StringConverter::byte_string::value_type>, std::is_convertible<T, const StringConverter::byte_string::value_type *>>;
+        constexpr bool IsByteString = std::disjunction_v<std::is_same<T, StringConverter::byte_string>, std::is_same<T, StringConverter::byte_string::value_type>, std::is_convertible<T, const StringConverter::byte_string::value_type *>, std::is_convertible<T, std::string_view>>;
         template <typename T>
-        constexpr bool IsWideString = std::disjunction_v<std::is_same<T, StringConverter::wide_string>, std::is_same<T, StringConverter::wide_string::value_type>, std::is_convertible<T, const StringConverter::wide_string::value_type *>>;
-        template <typename T>
-        requires IsByteString<T> || IsWideString<T>
-        using ToStringIfResult = std::conditional_t<IsWideString<T>, StringConverter::byte_string, const StringConverter::byte_string &>;
+        constexpr bool IsWideString = std::disjunction_v<std::is_same<T, StringConverter::wide_string>, std::is_same<T, StringConverter::wide_string::value_type>, std::is_convertible<T, const StringConverter::wide_string::value_type *>, std::is_convertible<T, std::wstring_view>>;
         template <typename T>
         requires IsByteString<T> || IsWideString<T>
-        using ToWStringIfResult = std::conditional_t<IsByteString<T>, StringConverter::wide_string, const StringConverter::wide_string &>;
+        using ToStringIfResult = std::conditional_t<!IsStringView<T>, std::conditional_t<IsWideString<T>, StringConverter::byte_string, const StringConverter::byte_string &>, std::conditional_t<IsWideString<T>, std::string_view, const std::string_view &>>;
+        template <typename T>
+        requires IsByteString<T> || IsWideString<T>
+        using ToWStringIfResult = std::conditional_t<!IsStringView<T>, std::conditional_t<IsByteString<T>, StringConverter::wide_string, const StringConverter::wide_string &>, std::conditional_t<IsByteString<T>, std::wstring_view, const std::wstring_view &>>;
     }
 
     template <Character T>

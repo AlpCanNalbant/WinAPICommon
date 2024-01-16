@@ -34,7 +34,7 @@ namespace Wcm
         DWORD nSize = sizeof(lpBuffer);
         if (!GetComputerNameW(lpBuffer, &nSize))
         {
-            Log->Error(L"Failed to retrieving the computer name.", GetLastError());
+            Log->Error("Failed to retrieving the computer name.", GetLastError());
         }
         return {lpBuffer};
     }
@@ -48,13 +48,13 @@ namespace Wcm
 
         if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
         {
-            Log->Error(L"OpenProcessToken error.", GetLastError());
+            Log->Error("OpenProcessToken error.", GetLastError());
             isSuccess = false;
         }
 
         if (!LookupPrivilegeValueW(NULL, lpszPrivilege, &luid)) // SE_DEBUG_NAME
         {
-            Log->Error(L"LookupPrivilegeValue error.", GetLastError());
+            Log->Error("LookupPrivilegeValue error.", GetLastError());
             isSuccess = false;
         }
 
@@ -64,13 +64,13 @@ namespace Wcm
 
         if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
         {
-            Log->Error(L"AdjustTokenPrivileges error.", GetLastError());
+            Log->Error("AdjustTokenPrivileges error.", GetLastError());
             isSuccess = false;
         }
 
         if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
         {
-            Log->Error(L"The token does not have the specified privilege.", ERROR_NOT_ALL_ASSIGNED);
+            Log->Error("The token does not have the specified privilege.", ERROR_NOT_ALL_ASSIGNED);
             isSuccess = false;
         }
         if (hToken)
@@ -85,13 +85,13 @@ namespace Wcm
     {
         if (!EnablePrivilegeValue(SE_DEBUG_NAME, true))
         {
-            Log->Error(L"Failed to obtain required privileges for openning the process.");
+            Log->Error("Failed to obtain required privileges for openning the process.");
         }
 
         HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processID);
         if (hProcess == NULL)
         {
-            Log->Error(L"Failed to open process.", GetLastError());
+            Log->Error("Failed to open process.", GetLastError());
             return NULL;
         }
 
@@ -105,7 +105,7 @@ namespace Wcm
         DWORD accessDeniedErrCode = 5;
         if (GetLastError() == accessDeniedErrCode)
         {
-            Log->Error(L"Failed to send close message.", accessDeniedErrCode);
+            Log->Error("Failed to send close message.", accessDeniedErrCode);
         }
     }
 }

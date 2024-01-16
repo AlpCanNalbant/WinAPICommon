@@ -10,7 +10,7 @@ namespace Wcm
         {
             if (RegSetValueExW(hKey_, name.data(), 0, static_cast<DWORD>(type), reinterpret_cast<LPCBYTE>(stringData), len * sizeof(T)) != ERROR_SUCCESS)
             {
-                Log->Error(L"Value of registry key could not be set.", GetLastError()).Sub({{{L"Name"}, {name.data()}}});
+                Log->Error("Value of registry key could not be set.", GetLastError()).Sub("Name", name);
                 return false;
             }
         }
@@ -18,7 +18,7 @@ namespace Wcm
         {
             if (RegSetValueExA(hKey_, name.data(), 0, static_cast<DWORD>(type), reinterpret_cast<LPCBYTE>(stringData), len * sizeof(T)) != ERROR_SUCCESS)
             {
-                Log->Error(L"Value of registry key could not be set.", GetLastError()).Sub({{{L"Name"}, {name.data()}}});
+                Log->Error("Value of registry key could not be set.", GetLastError()).Sub("Name", name);
                 return false;
             }
         }

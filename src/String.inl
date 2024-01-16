@@ -13,7 +13,14 @@ namespace Wcm
     Impl::StringConverter::byte_string ToString(const auto &wide)
         requires Impl::IsConvertibleWString<decltype(wide)>
     {
-        return (Impl::StringConverter{}).to_bytes(wide);
+        if constexpr (!IsStringView<decltype(wide)>)
+        {
+            return (Impl::StringConverter{}).to_bytes(wide);
+        }
+        else
+        {
+            return (Impl::StringConverter{}).to_bytes(wide.cbegin(), wide.cend());
+        }
     }
 
     template <typename T>
@@ -21,7 +28,14 @@ namespace Wcm
     {
         if constexpr (Impl::IsWideString<T>)
         {
-            return (Impl::StringConverter{}).to_bytes(string);
+            if constexpr (!IsStringView<decltype(string)>)
+            {
+                return (Impl::StringConverter{}).to_bytes(string);
+            }
+            else
+            {
+                return (Impl::StringConverter{}).to_bytes(string.begin(), string.end());
+            }
         }
         else
         {
@@ -32,7 +46,14 @@ namespace Wcm
     Impl::StringConverter::wide_string ToWString(const auto &narrow)
         requires Impl::IsConvertibleString<decltype(narrow)>
     {
-        return (Impl::StringConverter{}).from_bytes(narrow);
+        if constexpr (!IsStringView<decltype(narrow)>)
+        {
+            return (Impl::StringConverter{}).from_bytes(narrow);
+        }
+        else
+        {
+            return (Impl::StringConverter{}).from_bytes(narrow.begin(), narrow.end());
+        }
     }
 
     template <typename T>
@@ -40,7 +61,14 @@ namespace Wcm
     {
         if constexpr (Impl::IsByteString<T>)
         {
-            return (Impl::StringConverter{}).from_bytes(string);
+            if constexpr (!IsStringView<T>)
+            {
+                return (Impl::StringConverter{}).from_bytes(string);
+            }
+            else
+            {
+                return (Impl::StringConverter{}).from_bytes(string.begin(), string.end());
+            }
         }
         else
         {

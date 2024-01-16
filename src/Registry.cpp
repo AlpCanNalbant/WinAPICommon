@@ -12,7 +12,7 @@ namespace Wcm
         const auto isSuccess = RegCreateKeyExW(hKey, lpSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
         if (isSuccess != ERROR_SUCCESS)
         {
-            Log->Error(L"Registry key could not be opened.", GetLastError());
+            Log->Error("Registry key could not be opened.", GetLastError());
             return {nullptr, keyType};
         }
         return {hKey, keyType};
@@ -33,7 +33,7 @@ namespace Wcm
         case RegistryKeyType::Users:
             return HKEY_USERS;
         default:
-            Log->Error(L"Invalid registry key type.");
+            Log->Error("Invalid registry key type.");
             return nullptr;
         };
     }
