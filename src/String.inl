@@ -10,16 +10,21 @@ namespace Wcm
         return std::shared_ptr<T>{buffer, [](T *p) { std::free(p); }};
     }
 
+    auto ToStringView(const StringLike auto &str)
+    {
+        return std::basic_string_view<RemoveAll<decltype(str)>>{std::begin(str), std::end(str)};
+    }
+
     Impl::StringConverter::byte_string ToString(const auto &wide)
         requires Impl::IsConvertibleWString<decltype(wide)>
     {
-        if constexpr (!IsStringView<decltype(wide)>)
+        if constexpr (!WideCharacterStringView<decltype(wide)>)
         {
             return (Impl::StringConverter{}).to_bytes(wide);
         }
         else
         {
-            return (Impl::StringConverter{}).to_bytes(wide.cbegin(), wide.cend());
+            return (Impl::StringConverter{}).to_bytes(wide.begin(), wide.end());
         }
     }
 
@@ -28,7 +33,7 @@ namespace Wcm
     {
         if constexpr (Impl::IsWideString<T>)
         {
-            if constexpr (!IsStringView<decltype(string)>)
+            if constexpr (!WideCharacterStringView<T>)
             {
                 return (Impl::StringConverter{}).to_bytes(string);
             }
@@ -46,7 +51,7 @@ namespace Wcm
     Impl::StringConverter::wide_string ToWString(const auto &narrow)
         requires Impl::IsConvertibleString<decltype(narrow)>
     {
-        if constexpr (!IsStringView<decltype(narrow)>)
+        if constexpr (!ByteCharacterStringView<decltype(narrow)>)
         {
             return (Impl::StringConverter{}).from_bytes(narrow);
         }
@@ -61,7 +66,7 @@ namespace Wcm
     {
         if constexpr (Impl::IsByteString<T>)
         {
-            if constexpr (!IsStringView<T>)
+            if constexpr (!ByteCharacterStringView<T>)
             {
                 return (Impl::StringConverter{}).from_bytes(string);
             }
@@ -76,24 +81,55 @@ namespace Wcm
         }
     }
 
-    template <Character T>
-    DWORD GetStringLength(const T *buffer, bool countNull)
+    template <Character... Chars>
+        requires IsInRange<1, 2, Chars...>
+    DWORD GetStringLength(const Chars *...p)
     {
-        DWORD i = 0;
-        while (buffer[i])
+        if constexpr (auto &&t = std::forward_as_tuple(p...);
+                      IsEqual<1, Chars...>)
         {
-            ++i;
+            if constexpr ( requires { { std::strlen(std::get<0>(t)) } -> std::same_as<size_t>; } ||
+                           requires { { std::wcslen(std::get<0>(t)) } -> std::same_as<size_t>; } )
+            {
+                if constexpr (WideCharacter<First<Chars...>>)
+                {
+                    return std::wcslen(std::get<0>(t));
+                }
+                else
+                {
+                    return std::strlen(std::get<0>(t));
+                }
+            }
+            else
+            {
+                DWORD i = 0;
+                while (std::get<0>(t)[i])
+                {
+                    ++i;
+                }
+                return i;
+            }
         }
-        return i + countNull;
+        else
+        {
+            if constexpr (WideCharacter<First<Chars...>>)
+            {
+                return std::distance(std::get<0>(t), std::get<1>(t));
+            }
+            else
+            {
+                return std::get<1>(t) - std::get<0>(t);
+            }
+        }
     }
 
     template <Character T>
-    DWORD GetMultiStringLength(const T *buffer, bool countNull)
+    DWORD GetMultiStringLength(const T *buffer, bool countNullTerminators)
     {
-        DWORD len = countNull;
+        DWORD len = countNullTerminators;
         for (int i = 0; buffer[i] || buffer[i + 1]; ++i)
         {
-            len += static_cast<bool>(buffer[i]) + (!buffer[i] * countNull);
+            len += static_cast<bool>(buffer[i]) + (!buffer[i] * countNullTerminators);
         }
         return len;
     }

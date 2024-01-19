@@ -16,7 +16,6 @@ namespace Wcm
 
         KeySender();
         KeySender(const Wcm::Key key, const float delayInSeconds = 0.0f);
-
         void ResetTiming() const noexcept;
         bool Send() const noexcept;
 

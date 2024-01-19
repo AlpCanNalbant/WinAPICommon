@@ -5,39 +5,72 @@ namespace Wcm::Impl
     template <LoggableMessage... T>
     const Log &Log::Write(const Character auto *mark, const T &...explanations) const
     {
-        if (!OutputFile.empty())
+        static const auto makeStreamThread = [&]
         {
-            fileStream_.open(std::filesystem::path(OutputFile), std::ios_base::app); // Append instead of overwrite.
-#ifndef NDEBUG
-            if (!fileStream_.is_open())
+            (streamThread_ = std::make_unique<std::jthread>([&]
             {
-                std::wcout << "File stream cannot be opened.\n";
-                return *this;
-            }
+                for (auto i = 0uz; i < streamThreads_.size(); ++i)
+                {
+                    static const auto addStreamThread = [&]
+                    {
+                        streamThreads_.emplace_back(std::make_unique<std::jthread>([&]
+                        {
+                            if (!OutputFile.empty())
+                            {
+                                std::wofstream stream{std::filesystem::path(OutputFile), std::ios_base::app}; // Append instead of overwrite.
+#ifndef NDEBUG
+                                if (!stream.is_open())
+                                {
+                                    std::wcout << "File stream cannot be opened.\n";
+                                    return;
+                                }
 #endif
-            fileStream_ << mark << ' ';
-            auto streamExpl = [&](const auto &expl)
-            {
-                fileStream_ << Wcm::ToWStringIf(expl);
-            };
-            (streamExpl(explanations), ...);
-            fileStream_.close();
+                                stream << mark << ' ';
+                                const auto streamExpl = [&](const auto &expl)
+                                {
+                                    stream << Wcm::ToWStringIf(expl);
+                                };
+                                (streamExpl(explanations), ...);
+                                stream.close();
 #ifndef NDEBUG
-            if (fileStream_.fail())
-            {
-                std::wcout << "An error occurred while closing the file stream.\n";
-                return *this;
-            }
+                                if (stream.fail())
+                                {
+                                    std::wcout << "An error occurred while closing the file stream.\n";
+                                    return;
+                                }
 #endif
-        }
+                            }
 #ifndef NDEBUG
-        std::wcout << mark << ' ';
-        auto outputExpl = [&](const auto &expl)
-        {
-            std::wcout << Wcm::ToWStringIf(expl);
+                            std::wcout << mark << ' ';
+                            const auto outputExpl = [](const auto &expl)
+                            {
+                                std::wcout << Wcm::ToWStringIf(expl);
+                            };
+                            (outputExpl(explanations), ...);
+#endif
+                            return;
+                        }))->detach();
+                    };
+                    if (!streamThreads_[i]->joinable())
+                    {
+                        streamThreads_.erase(streamThreads_.cbegin() + i);
+                    }
+                    if (writeRequested_)
+                    {
+                        addStreamThread();
+                        writeRequested_ = false;
+                    }
+                }
+            }))->detach();
         };
-        (outputExpl(explanations), ...);
-#endif
+        if (streamThread_->joinable())
+        {
+            writeRequested_ = true;
+        }
+        else
+        {
+            makeStreamThread();
+        }
         return *this;
     }
 
@@ -92,7 +125,7 @@ namespace Wcm::Impl
 
     template <LoggableMessage... T>
     inline const Log &Log::Sub(const T &...titledSubMessage) const
-        requires IsTypesEqualTo<2, T...>
+        requires IsEqual<2, T...>
     {
         auto &&t = std::forward_as_tuple(titledSubMessage...);
         Write("    |___", std::get<0>(t), ": ", std::get<1>(t), '\n');

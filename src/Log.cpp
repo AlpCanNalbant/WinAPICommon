@@ -12,16 +12,14 @@ namespace Wcm
 
     namespace Impl
     {
-        std::wstring Log::GetLastErrorMessage() const
+        std::basic_string<TCHAR> Log::GetLastErrorMessage() const
         {
             return ToErrorMessage(GetLastError());
         }
 
-        std::wstring Log::ToErrorMessage(const HRESULT errorCode) const
+        std::basic_string<TCHAR> Log::ToErrorMessage(const HRESULT errorCode) const
         {
-            _com_error errorHandler{errorCode};
-            LPCTSTR errorText = errorHandler.ErrorMessage();
-            return {errorText};
+            return _com_error{errorCode}.ErrorMessage();
         }
     }
 }
