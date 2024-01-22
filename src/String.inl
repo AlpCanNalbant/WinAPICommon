@@ -12,7 +12,7 @@ namespace Wcm
 
     auto ToStringView(const StringLike auto &str)
     {
-        return std::basic_string_view<RemoveAll<decltype(str)>>{std::begin(str), std::end(str)};
+        return std::basic_string_view<CharacterOf<decltype(str)>>{Wcm::Begin(str), Wcm::End(str)};
     }
 
     Impl::StringConverter::byte_string ToString(const auto &wide)
@@ -81,8 +81,34 @@ namespace Wcm
         }
     }
 
+    template <Character T>
+    bool IsSameString(std::basic_string_view<T> str1, std::basic_string_view<T> str2, bool caseSensitive)
+    {
+        if (!caseSensitive)
+        {
+            if constexpr (std::is_same_v<std::remove_cvref_t<T>, wchar_t>)
+            {
+                return !wcsnicmp(str1.data(), str2.data(), std::max(str1.size(), str2.size()));
+            }
+            else if constexpr (std::is_same_v<std::remove_cvref_t<T>, char>)
+            {
+                return !strnicmp(str1.data(), str2.data(), std::max(str1.size(), str2.size()));
+            }
+        }
+        if constexpr (std::is_same_v<std::remove_cvref_t<T>, wchar_t>)
+        {
+            return !std::wcsncmp(str1.data(), str2.data(), std::max(str1.size(), str2.size()));
+        }
+        else if constexpr (std::is_same_v<std::remove_cvref_t<T>, char>)
+        {
+            return !std::strncmp(str1.data(), str2.data(), std::max(str1.size(), str2.size()));
+        }
+        return std::ranges::equal(str1, str2, [](auto c1, auto c2)
+            { return std::towlower(static_cast<std::wint_t>(c1)) == std::towlower(static_cast<std::wint_t>(c2)); });
+    }
+
     template <Character... Chars>
-        requires IsInRange<1, 2, Chars...>
+        requires IsInRange<1, 2, Chars...> && IsAllSame<Chars...>
     DWORD GetStringLength(const Chars *...p)
     {
         if constexpr (auto &&t = std::forward_as_tuple(p...);

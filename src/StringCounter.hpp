@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "Concepts.hpp"
-
 namespace Wcm
 {
     template <Character T>

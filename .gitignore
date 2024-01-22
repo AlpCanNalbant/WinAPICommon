@@ -1,5 +1,9 @@
 # Ignore specified folders.
+Build/
 bin/
 obj/
 temp/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/c_cpp_properties.json

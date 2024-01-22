@@ -1,20 +1,16 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
 #pragma once
-
 #include <iostream>
-#include <type_traits>
 #include <memory>
 #include <tuple>
 #include <array>
-#include <string>
 #include <string_view>
 #include <fstream>
 #include <filesystem>
 #include <source_location>
 #include <thread>
 #include <vector>
-#include "Concepts.hpp"
 #include "System.hpp"
 #include "String.hpp"
 
@@ -23,7 +19,7 @@ namespace Wcm
     namespace Impl
     {
         template <typename T>
-        concept LoggableMessage = std::constructible_from<std::filesystem::path, T> || Character<T> || WideCharacter<T>;
+        concept LoggableMessage = std::constructible_from<std::filesystem::path, T> || Character<T>;
 
         class Log
         {
@@ -33,32 +29,28 @@ namespace Wcm
             std::wstring OutputFile{};
             wchar_t InfoMark[4]{'(', '!', ')', '\0'}, ErrorMark[4]{'[', 'X', ']', '\0'};
 
-            template <LoggableMessage... T>
-            const Log &Write(const Character auto *mark, const T &...explanations) const;
-            template <LoggableMessage... T>
-            const Log &WriteLine(const Character auto *mark, const T &...explanations) const;
+            template <LoggableMessage... Msgs>
+            Log &Write(const Character auto *mark, const Msgs &...explanations);
+            template <LoggableMessage... Msgs>
+            Log &WriteLine(const Character auto *mark, const Msgs &...explanations);
             template <LoggableMessage T>
-            const Log &Info(const T &explanation) const;
+            Log &Info(const T &explanation);
             template <LoggableMessage T>
-            const Log &Error(const T &reason, const std::source_location &location = std::source_location::current()) const;
+            Log &Error(const T &reason, const std::source_location &location = std::source_location::current());
             template <LoggableMessage T>
-            const Log &Error(const T &reason, const HRESULT errorCode, const std::source_location &location = std::source_location::current()) const;
-            template <LoggableMessage... T>
-            const Log &Sub(const T &...titledSubMessage) const
-                requires IsEqual<2, T...>;
+            Log &Error(const T &reason, const HRESULT errorCode, const std::source_location &location = std::source_location::current());
+            template <LoggableMessage... Msgs>
+            Log &Sub(const Msgs &...titledSubMessage)
+                requires IsEqual<2, Msgs...>;
             [[nodiscard]] std::basic_string<TCHAR> GetLastErrorMessage() const;
             [[nodiscard]] std::basic_string<TCHAR> ToErrorMessage(const HRESULT errorCode) const;
 
         private:
             template <LoggableMessage T>
-            void Error(const T &reason, const ErrorType type, const std::source_location &location) const;
-            void AddStreamThread();
+            void Error(const T &reason, const ErrorType type, const std::source_location &location);
 
-            // mutable std::wofstream fileStream_;
-            mutable HRESULT errorCode_;
-            mutable std::vector<std::unique_ptr<std::jthread>> streamThreads_;
-            mutable std::unique_ptr<std::jthread> streamThread_;
-            mutable std::atomic_bool writeRequested_;
+            std::wofstream fileStream_;
+            HRESULT errorCode_;
 
             enum class ErrorType
             {

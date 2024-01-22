@@ -1,9 +1,7 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
 #pragma once
-
 #include "Log.hpp"
-#include "Concepts.hpp"
 #include "RegistryKeyType.hpp"
 #include "RegistryValueType.hpp"
 #include "EventLogType.hpp"

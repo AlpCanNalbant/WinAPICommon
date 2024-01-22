@@ -1,5 +1,6 @@
+// Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
+
 #include "FileSystem.hpp"
-#include "String.hpp"
 
 namespace Wcm
 {

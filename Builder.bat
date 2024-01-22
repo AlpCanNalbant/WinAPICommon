@@ -109,7 +109,7 @@ set IsDynamicLibrary=False
         set SourceDirectory=%BaseDirectory%src
         set SourceFiles=Log KeySender System FileSystem Registry RegistryKey
         set ProjectName=WinAPICommon
-        set PrecompiledHeader=Precompiled
+        set PrecompiledHeader=%SourceDirectory%/Precompiled
         set IsStaticLibrary=True
     goto :SwitchCaseEnd
     :Case_1
@@ -119,6 +119,7 @@ set IsDynamicLibrary=False
         set IncludeDirectories=%BaseDirectory%src
         set StaticLibraries=WinAPICommon
         set StaticLibraryDirectories=%BinaryOutputsDirectory%
+        set PrecompiledHeader=%BaseDirectory%/src/Precompiled
     goto :SwitchCaseEnd
     :Case_2
         set SourceDirectory=%BaseDirectory%Samples\RegistererSample
@@ -127,6 +128,7 @@ set IsDynamicLibrary=False
         set IncludeDirectories=%BaseDirectory%src
         set StaticLibraries=WinAPICommon
         set StaticLibraryDirectories=%BinaryOutputsDirectory%
+        set PrecompiledHeader=%BaseDirectory%/src/Precompiled
     goto :SwitchCaseEnd
 :SwitchCaseEnd
 
@@ -186,7 +188,7 @@ set DebugBuildOptions=-D _DEBUG -O0 -g
 @REM Set the variables of the release mode building process.
 set ReleaseBuildOptions=-D NDEBUG -O2 -s
 
-set StandardBuildOptions=-std=c++20 -m64 -municode -D UNICODE -D _UNICODE
+set StandardBuildOptions=-std=c++2b -m64 -municode -D UNICODE -D _UNICODE
 
 if /I "%BuildMode%"=="Debug" (
     set BuildOptions=%StandardBuildOptions% %DebugBuildOptions% %CompilerWarningOptions%
@@ -205,7 +207,7 @@ echo . [^^!] Building %ProjectName% %ProjectTypeTitle% in %BuildMode% mode ...
 
 if not "%CustomBuildOperationFunction%"=="" goto :%CustomBuildOperationFunction%
 
-if not "%PrecompiledHeader%"=="" set PrecompiledHeader=-include %SourceDirectory%\%PrecompiledHeader%%HeaderFilesExtension%
+if not "%PrecompiledHeader%"=="" set PrecompiledHeader=-include %PrecompiledHeader%%HeaderFilesExtension%
 
 @REM Start the compiling process of current executable or static library project. Shared library projects does not supported yet.
 @REM Create their object files from their source files of the current project for the linking operation.

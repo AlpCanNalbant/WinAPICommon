@@ -39,7 +39,7 @@ namespace Wcm
         return {lpBuffer};
     }
 
-    bool EnablePrivilegeValue(LPCTSTR lpszPrivilege, bool bEnablePrivilege)
+    bool EnablePrivilegeValue(LPCWSTR lpszPrivilege, bool bEnablePrivilege)
     {
         HANDLE hToken;
         LUID luid;

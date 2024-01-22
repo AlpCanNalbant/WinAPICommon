@@ -4,33 +4,50 @@ namespace Wcm
 {
     std::filesystem::path ToBaseDirectory(const StringLike auto &path)
     {
-        const auto pathString = ToStringView(path);
 #ifdef WCM_UNICODE
+        auto pathString = ToWStringIf(ToStringView(path));
         auto buffer = const_cast<PWSTR>(pathString.data());
-        if (PathCchRemoveFileSpec(buffer, MAX_PATH) == S_FALSE)
+        if (PathCchRemoveFileSpec(buffer, pathString.length()) != S_OK)
         {
+            pathString = buffer; // The data pointed to may have changed, so update it before any operation with it.
             Log->Error("Failed to remove last element of path.", GetLastError()).Sub("Path", pathString);
-            return pathString.substr(0, pathString.find_last_of(L"\\/"));
+            return pathString.substr(0, pathString.find_last_of(L'\\'));
         }
 #else
-        return pathString.substr(0, pathString.find_last_of("\\/"));
+        auto pathString = ToStringIf(ToStringView(path));
+        auto buffer = const_cast<LPSTR>(pathString.data());
+        if (!PathRemoveFileSpecA(buffer))
+        {
+            pathString = buffer;
+            Log->Error("Failed to remove last element of path.", GetLastError()).Sub("Path", pathString);
+            return pathString.substr(0, pathString.find_last_of('\\'));
+        }
 #endif
+        return buffer;
     }
 
     bool MakeDirectory(const StringLike auto &dir)
     {
 #define WCM_FILESYSTEM_MAKEDIRECTORY_CREATE_ERROR_LOG(dir) Log->Error("Failed to create directory.", GetLastError()).Sub("Directory", dir)
-        if constexpr (CharacterPointer<decltype(dir)>)
+        if constexpr (WideCharacterPointer<decltype(dir)>)
         {
-            if (!CreateDirectory(dir, nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
+            if (!CreateDirectoryW(dir, nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
             {
                 WCM_FILESYSTEM_MAKEDIRECTORY_CREATE_ERROR_LOG(dir);
                 return false;
             }
         }
-        else
+        else if constexpr (ByteCharacterPointer<decltype(dir)>)
         {
-            if (!CreateDirectory(dir.data(), nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
+            if (!CreateDirectoryA(dir, nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
+            {
+                WCM_FILESYSTEM_MAKEDIRECTORY_CREATE_ERROR_LOG(dir);
+                return false;
+            }
+        }
+        else if constexpr (WideCharacterStringAny<decltype(dir)>)
+        {
+            if (!CreateDirectoryW(dir.data(), nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
             {
                 WCM_FILESYSTEM_MAKEDIRECTORY_CREATE_ERROR_LOG(dir);
                 return false;
@@ -77,7 +94,7 @@ namespace Wcm
     bool IsSameFile(const T &file1, const T &file2)
     {
 #define WCM_FILESYSTEM_ISSAMEFILE_OPEN_ERROR_LOG(file) Log->Error("Equivalence comparison file is cannot opened.").Sub("ComparisonFile", file)
-        using Chr = RemoveAll<T>;
+        using Chr = CharacterOf<T>;
         typename std::basic_string_view<Chr>::const_pointer files[] = {ToStringView(file1).data(), ToStringView(file2).data()};
         std::basic_ifstream<Chr> stream1{files[0], std::basic_ifstream<Chr>::binary | std::basic_ifstream<Chr>::ate};
         if (!stream1.is_open())

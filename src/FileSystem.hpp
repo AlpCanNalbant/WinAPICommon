@@ -1,7 +1,7 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
 #pragma once
-
+#include <shlwapi.h>
 #include <pathcch.h>
 #include <fstream>
 #include <filesystem>
@@ -9,10 +9,7 @@
 #include <initializer_list>
 #include <source_location>
 #include <algorithm>
-
-#include "String.hpp"
 #include "Log.hpp"
-#include "Concepts.hpp"
 
 namespace Wcm
 {

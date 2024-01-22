@@ -1,9 +1,7 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
 #pragma once
-
 #include <chrono>
-
 #include "Key.hpp"
 
 namespace Wcm
