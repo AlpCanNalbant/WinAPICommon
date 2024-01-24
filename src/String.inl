@@ -10,9 +10,17 @@ namespace Wcm
         return std::shared_ptr<T>{buffer, [](T *p) { std::free(p); }};
     }
 
-    auto ToStringView(const StringLike auto &str)
+    template <StringLike T>
+    std::basic_string_view<CharacterOf<T>> ToStringView(const T &str)
     {
-        return std::basic_string_view<CharacterOf<decltype(str)>>{Wcm::Begin(str), Wcm::End(str)};
+        if constexpr (!std::same_as<std::remove_cvref_t<T>, std::filesystem::path>)
+        {
+            return {Wcm::Begin(str), Wcm::End(str)};
+        }
+        else
+        {
+            return {Wcm::Begin(str.native()), Wcm::End(str.native())};
+        }
     }
 
     Impl::StringConverter::byte_string ToString(const auto &wide)
@@ -108,10 +116,9 @@ namespace Wcm
     }
 
     template <Character... Chars>
-        requires IsInRange<1, 2, Chars...> && IsAllSame<Chars...>
-    DWORD GetStringLength(const Chars *...p)
+    DWORD GetStringLength(const Chars *...str)
     {
-        if constexpr (auto &&t = std::forward_as_tuple(p...);
+        if constexpr (auto &&t = std::forward_as_tuple(str...);
                       IsEqual<1, Chars...>)
         {
             if constexpr ( requires { { std::strlen(std::get<0>(t)) } -> std::same_as<size_t>; } ||

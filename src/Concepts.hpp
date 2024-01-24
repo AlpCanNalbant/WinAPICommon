@@ -65,6 +65,15 @@ namespace Wcm
     concept CharacterStringView = ByteCharacterStringView<T> || WideCharacterStringView<T>;
 
     template <typename T>
+    concept ByteCharacterRawString =
+        ByteCharacterArray<T> || ByteCharacterPointer<T>;
+    template <typename T>
+    concept WideCharacterRawString =
+        WideCharacterArray<T> || WideCharacterPointer<T>;
+    template <typename T>
+    concept CharacterRawString = ByteCharacterRawString<T> || WideCharacterRawString<T>;
+
+    template <typename T>
     concept ByteCharacterStringAny =
         ByteCharacterString<T> || ByteCharacterStringView<T>;
     template <typename T>
@@ -75,10 +84,13 @@ namespace Wcm
 
     template <typename T>
     concept ByteCharacterStringLike =
-        ByteCharacterArray<T> || ByteCharacterPointer<T> || ByteCharacterString<T> || ByteCharacterStringView<T>;
+        ByteCharacterRawString<T> || ByteCharacterStringAny<T>;
     template <typename T>
     concept WideCharacterStringLike =
-        WideCharacterArray<T> || WideCharacterPointer<T> || WideCharacterString<T> || WideCharacterStringView<T>;
+        WideCharacterRawString<T> || WideCharacterStringAny<T>;
+    template <typename T>
+    concept CharacterStringLike =
+        ByteCharacterStringLike<T> || WideCharacterStringLike<T>;
     template <typename T>
     concept StringLike = CharacterArray<T> || std::constructible_from<std::filesystem::path, T>;
 }

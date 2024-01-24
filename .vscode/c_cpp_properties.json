@@ -11,9 +11,11 @@
             "defines": [
                 "_DEBUG",
                 "UNICODE",
-                "_UNICODE"
+                "_UNICODE",
+                "WINVER=0x0A00",
+                "_WIN32_WINNT=0x0A00"
             ],
-            "cppStandard": "c++23",
+            "cppStandard": "c++23", // or you can use C++20.
             "cStandard": "c17"
         }
     ],

@@ -78,7 +78,8 @@ namespace Wcm
 
     template <Character T>
     [[nodiscard]] std::shared_ptr<T> ToBuffer(std::basic_string_view<T> str);
-    [[nodiscard]] auto ToStringView(const StringLike auto &str);
+    template <StringLike T>
+    [[nodiscard]] std::basic_string_view<CharacterOf<T>> ToStringView(const T &str);
     [[nodiscard]] Impl::StringConverter::byte_string ToString(const auto &wide)
         requires Impl::IsConvertibleWString<decltype(wide)>;
     template <typename T>
@@ -90,8 +91,7 @@ namespace Wcm
     template <Character T>
     [[nodiscard]] bool IsSameString(std::basic_string_view<T> str1, std::basic_string_view<T> str2, bool caseSensitive = false);
     template <Character... Chars>
-        requires IsInRange<1, 2, Chars...> && IsAllSame<Chars...>
-    [[nodiscard]] DWORD GetStringLength(const Chars *...p);
+    [[nodiscard]] DWORD GetStringLength(const Chars*... str);
     template <Character T>
     [[nodiscard]] DWORD GetMultiStringLength(const T *buffer, bool countNullTerminators = false);
 }

@@ -103,15 +103,16 @@ namespace Wcm
     }
 
     template <Range T>
-    constexpr Iterator<T> RBeginT::operator()(T &&t) const noexcept(IsNoexcept<T>())
+    constexpr ReverseIterator<Iterator<T>> RBeginT::operator()(T &&t) const noexcept(IsNoexcept<T>())
     {
         if constexpr (!CharacterPointer<T>)
         {
+            std::vector<int> d;
             return std::ranges::rbegin(std::forward<T>(t));
         }
         else
         {
-            return t + Impl::GetStringLength(t);
+            return std::make_reverse_iterator(t + Impl::GetStringLength(t));
         }
     }
     template <Range T>
@@ -128,7 +129,7 @@ namespace Wcm
     }
 
     template <Range T>
-    constexpr ConstIterator<T> CRBeginT::operator()(T &&t) const noexcept(IsNoexcept<T>())
+    constexpr ReverseIterator<ConstIterator<T>> CRBeginT::operator()(T &&t) const noexcept(IsNoexcept<T>())
     {
         if constexpr (!CharacterPointer<T>)
         {
@@ -136,7 +137,7 @@ namespace Wcm
         }
         else
         {
-            return t + Impl::GetStringLength(t);
+            return std::make_reverse_iterator(t + Impl::GetStringLength(t));
         }
     }
     template <Range T>
@@ -153,7 +154,7 @@ namespace Wcm
     }
 
     template <Range T>
-    constexpr Sentinel<T> REndT::operator()(T &&t) const noexcept(IsNoexcept<T>())
+    constexpr ReverseIterator<Sentinel<T>> REndT::operator()(T &&t) const noexcept(IsNoexcept<T>())
     {
         if constexpr (!CharacterPointer<T>)
         {
@@ -161,7 +162,7 @@ namespace Wcm
         }
         else
         {
-            return t;
+            return std::make_reverse_iterator(t);
         }
     }
     template <Range T>
@@ -178,7 +179,7 @@ namespace Wcm
     }
 
     template <Range T>
-    constexpr ConstSentinel<T> CREndT::operator()(T &&t) const noexcept(IsNoexcept<T>())
+    constexpr ReverseIterator<ConstSentinel<T>> CREndT::operator()(T &&t) const noexcept(IsNoexcept<T>())
     {
         if constexpr (!CharacterPointer<T>)
         {
@@ -186,7 +187,7 @@ namespace Wcm
         }
         else
         {
-            return t;
+            return std::make_reverse_iterator(t);
         }
     }
     template <Range T>

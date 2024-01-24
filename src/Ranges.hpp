@@ -79,6 +79,13 @@ namespace Wcm
     };
 
     template <typename T>
+        requires requires { typename std::reverse_iterator<T>::iterator_type; }
+    struct ReverseIteratorT
+    {
+        using Type = std::reverse_iterator<T>;
+    };
+
+    template <typename T>
     concept Range = CharacterPointer<T> || std::ranges::range<T>;
 
     template <Range T>
@@ -89,6 +96,8 @@ namespace Wcm
     using Sentinel = SentinelT<T>::Type;
     template <Range T>
     using ConstSentinel = ConstSentinelT<T>::Type;
+    template <typename T>
+    using ReverseIterator = ReverseIteratorT<T>::Type;
 
     struct BeginT
     {
@@ -131,7 +140,7 @@ namespace Wcm
     {
     public:
         template <Range T>
-        [[nodiscard]] constexpr Iterator<T> operator()(T &&t) const noexcept(IsNoexcept<T>());
+        [[nodiscard]] constexpr ReverseIterator<Iterator<T>> operator()(T &&t) const noexcept(IsNoexcept<T>());
     private:
         template <Range T>
         [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
@@ -140,7 +149,7 @@ namespace Wcm
     {
     public:
         template <Range T>
-        [[nodiscard]] constexpr ConstIterator<T> operator()(T &&t) const noexcept(IsNoexcept<T>());
+        [[nodiscard]] constexpr ReverseIterator<ConstIterator<T>> operator()(T &&t) const noexcept(IsNoexcept<T>());
     private:
         template <Range T>
         [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
@@ -149,7 +158,7 @@ namespace Wcm
     {
     public:
         template <Range T>
-        [[nodiscard]] constexpr Sentinel<T> operator()(T &&t) const noexcept(IsNoexcept<T>());
+        [[nodiscard]] constexpr ReverseIterator<Sentinel<T>> operator()(T &&t) const noexcept(IsNoexcept<T>());
     private:
         template <Range T>
         [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
@@ -158,7 +167,7 @@ namespace Wcm
     {
     public:
         template <Range T>
-        [[nodiscard]] constexpr ConstSentinel<T> operator()(T &&t) const noexcept(IsNoexcept<T>());
+        [[nodiscard]] constexpr ReverseIterator<ConstSentinel<T>> operator()(T &&t) const noexcept(IsNoexcept<T>());
     private:
         template <Range T>
         [[nodiscard]] static constexpr bool IsNoexcept() noexcept;

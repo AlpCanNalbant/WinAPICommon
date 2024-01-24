@@ -87,6 +87,10 @@ namespace Wcm
     template <typename... Types>
     using First = At<0, Types...>;
     template <typename... Types>
+    using Second = At<1, Types...>;
+    template <typename... Types>
+    using Third = At<2, Types...>;
+    template <typename... Types>
     using Last = At<sizeof...(Types) - 1, Types...>;
     template <typename T>
     using RemoveAll = RemoveAllT<T>::Type;
