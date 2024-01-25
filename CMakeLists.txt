@@ -15,7 +15,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME WinAPICommon CXX_ST
 target_link_libraries(${PROJECT_NAME} INTERFACE -lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32)
 target_precompile_headers(${PROJECT_NAME} PUBLIC "src/Precompiled.hpp")
 target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:Debug>:_DEBUG>" "$<$<CONFIG:Release>:NDEBUG>" "WINVER=0x0A00;_WIN32_WINNT=0x0A00") # Set to target every version of the Windows 10 operating system.
-target_include_directories(${PROJECT_NAME} INTERFACE "./src")
+target_include_directories(${PROJECT_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:Debug>:-m64;-municode;-Wall;-Wextra;-Wformat=2;-Wunused;-Wpedantic;>" "$<$<CONFIG:Release>:-m64;-municode;>")
 
 message("Installing Windows API Common Helper Library Project !!!")
