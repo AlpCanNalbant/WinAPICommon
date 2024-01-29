@@ -18,7 +18,14 @@ namespace Wcm::Impl
             fileStream_ << mark << ' ';
             auto streamExpl = [this] (const auto &expl)
             {
-                fileStream_ << ToWStringIf(expl);
+                if constexpr (!Character<decltype(expl)>)
+                {
+                    fileStream_ << ToWStringIf(ToStringView(expl));
+                }
+                else
+                {
+                    fileStream_ << ToWStringIf(expl);
+                }
             };
             (streamExpl(explanations), ...);
             fileStream_.close();
@@ -31,7 +38,7 @@ namespace Wcm::Impl
 #endif
         }
 #ifndef NDEBUG
-        const auto isError = IsSameString(ToStringView(ToWStringIf(ErrorMark)), ToStringView(ToWStringIf(mark)));
+        const auto isError = IsSameString(ToStringView(ErrorMark), ToStringView(ToWStringIf(mark)));
         if (isError)
         {
             std::wcerr << mark << ' ';
