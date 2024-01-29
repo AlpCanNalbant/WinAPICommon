@@ -1,5 +1,6 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
+#include "Log.hpp"
 #include "WinAPICommon.hpp"
 
 namespace Wcm
@@ -106,6 +107,29 @@ namespace Wcm
         if (GetLastError() == accessDeniedErrCode)
         {
             Log->Error("Failed to send close message.", accessDeniedErrCode);
+        }
+    }
+
+    namespace Impl
+    {
+        std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(LPCWSTR app, LPWSTR args)
+        {
+            if (const auto procInfo = GetProcessInfo<WCHAR>(); CreateProcessW(app, args, nullptr, nullptr, FALSE, 0, nullptr, nullptr, const_cast<LPSTARTUPINFOW>(&procInfo.second), procInfo.first.get()))
+            {
+                return procInfo.first;
+            }
+            Wcm::Log->Error("Creation of process is failed.", GetLastError()).Sub("Process", app);
+            return nullptr;
+        }
+
+        std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(LPCSTR app, LPSTR args)
+        {
+            if (const auto procInfo = GetProcessInfo<CHAR>(); CreateProcessA(app, args, nullptr, nullptr, FALSE, 0, nullptr, nullptr, const_cast<LPSTARTUPINFOA>(&procInfo.second), procInfo.first.get()))
+            {
+                return procInfo.first;
+            }
+            Wcm::Log->Error("Creation of process is failed.", GetLastError()).Sub("Process", app);
+            return nullptr;
         }
     }
 }
