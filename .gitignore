@@ -3,6 +3,7 @@ Build/
 bin/
 obj/
 temp/
+include/
 .vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json
