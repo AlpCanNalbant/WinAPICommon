@@ -4,6 +4,28 @@
 
 namespace Wcm
 {
+    std::filesystem::path CutPath(const std::filesystem::path &path, const std::filesystem::path &itemName, bool inReverse)
+    {
+        if (!inReverse)
+        {
+            std::filesystem::path resPath;
+            for (auto begin = path.begin(); begin != path.end() && itemName != *begin; ++begin)
+            {
+                resPath /= *begin;
+            }
+            return resPath / itemName;
+        }
+        else
+        {
+            typename std::filesystem::path::string_type resPath = path.filename().native();
+            for (auto begin = --path.begin(), end = ----path.end(); end != begin && itemName != *end; --end)
+            {
+                resPath = (*end).native() + std::filesystem::path::preferred_separator + resPath;
+            }
+            return itemName.native() + std::filesystem::path::preferred_separator + resPath;
+        }
+    }
+
     std::filesystem::path GetBaseDirectory()
     {
 #define WCM_FILESYSTEM_GETBASEDIRECTORY_MODULE_ERROR_LOG Log->Error("Failed to retrieving the module file name.", GetLastError())
