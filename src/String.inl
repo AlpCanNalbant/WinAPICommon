@@ -92,24 +92,29 @@ namespace Wcm
     template <Character T>
     bool IsSameString(std::basic_string_view<T> str1, std::basic_string_view<T> str2, bool caseSensitive)
     {
+        const auto length = str1.length();
+        if (length != str2.length())
+        {
+            return false;
+        }
         if (!caseSensitive)
         {
             if constexpr (std::is_same_v<std::remove_cvref_t<T>, wchar_t>)
             {
-                return !wcsnicmp(str1.data(), str2.data(), std::max(str1.size(), str2.size()));
+                return !wcsnicmp(str1.data(), str2.data(), length);
             }
             else if constexpr (std::is_same_v<std::remove_cvref_t<T>, char>)
             {
-                return !strnicmp(str1.data(), str2.data(), std::max(str1.size(), str2.size()));
+                return !strnicmp(str1.data(), str2.data(), length);
             }
         }
         if constexpr (std::is_same_v<std::remove_cvref_t<T>, wchar_t>)
         {
-            return !std::wcsncmp(str1.data(), str2.data(), std::max(str1.size(), str2.size()));
+            return !std::wcsncmp(str1.data(), str2.data(), length);
         }
         else if constexpr (std::is_same_v<std::remove_cvref_t<T>, char>)
         {
-            return !std::strncmp(str1.data(), str2.data(), std::max(str1.size(), str2.size()));
+            return !std::strncmp(str1.data(), str2.data(), length);
         }
         return std::ranges::equal(str1, str2, [](auto c1, auto c2)
             { return std::towlower(static_cast<std::wint_t>(c1)) == std::towlower(static_cast<std::wint_t>(c2)); });
