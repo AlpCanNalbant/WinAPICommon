@@ -5,7 +5,10 @@ namespace Wcm
     std::filesystem::path ToBaseDirectory(const StringLike auto &path)
     {
 #ifdef WCM_UNICODE
-        auto pathString = ToWStringIf(ToStringView(path));
+        // If wstring_view or wchar_t is passed as path argument do not construct from it instead emplace from it.
+        // Instead store the data itself, make a copy from it. Data may edited from in PathCchRemoveFileSpec and PathRemoveFileSpecA functions.
+        std::wstring pathString;
+        pathString += ToWStringIf(ToStringView(path));
         auto buffer = const_cast<PWSTR>(pathString.data());
         std::replace(Wcm::RBegin(buffer), Wcm::REnd(buffer), L'/', L'\\');
         if (PathCchRemoveFileSpec(buffer, pathString.length()) != S_OK)
@@ -15,8 +18,10 @@ namespace Wcm
             return pathString.substr(0, pathString.find_last_of(L'\\'));
         }
 #else
-        auto pathString = ToStringIf(ToStringView(path));
+        std::string pathString;
+        pathString += ToStringIf(ToStringView(path));
         auto buffer = const_cast<LPSTR>(pathString.data());
+        std::replace(Wcm::RBegin(buffer), Wcm::REnd(buffer), '/', '\\');
         if (!PathRemoveFileSpecA(buffer))
         {
             pathString = buffer;
@@ -30,29 +35,21 @@ namespace Wcm
     template <StringLike T>
     bool IsFileExists(const T &file)
     {
-        DWORD dwFileAttribs = 0;
-        if constexpr (std::is_same_v<std::remove_cvref_t<CharacterOf<T>>, CHAR>)
+        if (const DWORD dwFileAttribs = Impl::GetFileAttribs(file); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
         {
-            if ((dwFileAttribs = GetFileAttributesA(ToStringView(file).data())) == INVALID_FILE_ATTRIBUTES)
-            {
-                Log->Error("Atrributes of the assocaited file is cannot obtained.", GetLastError()).Sub("File", file);
-                return false;
-            }
+            return !(dwFileAttribs & FILE_ATTRIBUTE_DIRECTORY);
         }
-        else if constexpr (std::is_same_v<std::remove_cvref_t<CharacterOf<T>>, CHAR>)
+        return std::filesystem::is_regular_file(file);
+    }
+
+    template <StringLike T>
+    bool IsDirectoryExists(const T &dir)
+    {
+        if (const DWORD dwFileAttribs = Impl::GetFileAttribs(dir); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
         {
-            if ((dwFileAttribs = GetFileAttributesW(ToStringView(file).data())) == INVALID_FILE_ATTRIBUTES)
-            {
-                Log->Error("Atrributes of the assocaited file is cannot obtained.", GetLastError()).Sub("File", file);
-                return false;
-            }
+            return (dwFileAttribs & FILE_ATTRIBUTE_DIRECTORY);
         }
-        else
-        {
-            return std::filesystem::is_regular_file({file});
-        }
-        dwFileAttribs &= FILE_ATTRIBUTE_DIRECTORY;
-        return dwFileAttribs == 0;
+        return std::filesystem::is_directory(dir);
     }
 
     bool IsFileNewer(const StringLike auto &srcFile, const StringLike auto &destFile)
@@ -88,9 +85,17 @@ namespace Wcm
 
     bool UpdateFileContent(const StringLike auto &srcFile, const StringLike auto &destFile)
     {
+        bool dummy;
+        return UpdateFileContent(srcFile, destFile, dummy);
+    }
+
+    bool UpdateFileContent(const StringLike auto &srcFile, const StringLike auto &destFile, bool &isError)
+    {
+        isError = false;
         if (!IsFileExists(srcFile))
         {
             Log->Error("Source file is not found.").Sub("SourceFile", srcFile);
+            isError = true;
             return false;
         }
         // Also compare their contents if the last write time of the destination file is older.
@@ -98,11 +103,20 @@ namespace Wcm
         {
             return false;
         }
+        if (const auto baseDir = Wcm::ToBaseDirectory(destFile); !Wcm::IsDirectoryExists(baseDir))
+        {
+            if (!MakeDirectories(baseDir))
+            {
+                isError = true;
+                return false;
+            }
+        }
         COPYFILE2_EXTENDED_PARAMETERS params{};
         params.dwSize = sizeof(params);
-        if (!SUCCEEDED(CopyFile2(ToStringView(ToWStringIf(srcFile)).data(), ToStringView(ToWStringIf(destFile)).data(), &params)))
+        if (!SUCCEEDED(CopyFile2(ToWStringIf(ToStringView(srcFile)).data(), ToWStringIf(ToStringView(destFile)).data(), &params)))
         {
             Log->Error("Cannot overwrite the destination file with the source file.", GetLastError()).Sub("SourceFile", srcFile).Sub("DestinationFile", destFile);
+            isError = true;
             return false;
         }
         return true;
@@ -114,7 +128,7 @@ namespace Wcm
 #define WCM_FILESYSTEM_MAKEDIRECTORY_CREATE_ERROR_LOG(dir) Log->Error("Failed to create directory.", GetLastError()).Sub("Directory", dir)
         if constexpr (WideCharacterPointer<T>)
         {
-            if (!CreateDirectoryW(dir, nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
+            if (!CreateDirectoryW(ToStringView(dir).data(), nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
             {
                 WCM_FILESYSTEM_MAKEDIRECTORY_CREATE_ERROR_LOG(dir);
                 return false;
@@ -122,7 +136,7 @@ namespace Wcm
         }
         else if constexpr (ByteCharacterPointer<T>)
         {
-            if (!CreateDirectoryA(dir, nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
+            if (!CreateDirectoryA(ToStringView(dir).data(), nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
             {
                 WCM_FILESYSTEM_MAKEDIRECTORY_CREATE_ERROR_LOG(dir);
                 return false;
@@ -230,19 +244,46 @@ namespace Wcm
     {
         bool GetFileHandlesReadonly(const StringLike auto &srcFile, const StringLike auto &destFile, _Out_ HANDLE &hSrcFile, _Out_ HANDLE &hDestFile)
         {
-            if ((hSrcFile = CreateFileW(reinterpret_cast<LPCWSTR>(ToStringView(ToWStringIf(srcFile)).data()),
+            if ((hSrcFile = CreateFileW(reinterpret_cast<LPCWSTR>(ToWStringIf(ToStringView(srcFile)).data()),
                                         FILE_READ_ATTRIBUTES, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr)) == INVALID_HANDLE_VALUE)
             {
                 Wcm::Log->Error("Handle of the source file is cannot be obtained.", GetLastError()).Sub("SourceFile", srcFile);
                 return false;
             }
-            if ((hDestFile = CreateFileW(reinterpret_cast<LPCWSTR>(ToStringView(ToWStringIf(destFile)).data()),
+            if ((hDestFile = CreateFileW(reinterpret_cast<LPCWSTR>(ToWStringIf(ToStringView(destFile)).data()),
                 FILE_READ_ATTRIBUTES, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr)) == INVALID_HANDLE_VALUE)
             {
                 Wcm::Log->Error("Handle of the destination file is cannot be obtained.", GetLastError()).Sub("DestinationFile", destFile);
                 return false;
             }
             return true;
+        }
+
+        template <StringLike T>
+        DWORD GetFileAttribs(const T &file)
+        {
+            DWORD dwFileAttribs = 0;
+            if constexpr (std::is_same_v<std::remove_cvref_t<CharacterOf<T>>, CHAR>)
+            {
+                if ((dwFileAttribs = GetFileAttributesA(ToStringView(file).data())) == INVALID_FILE_ATTRIBUTES)
+                {
+                    Wcm::Log->Error("Atrributes of the assocaited file is cannot obtained.", GetLastError()).Sub("File", file);
+                    return INVALID_FILE_ATTRIBUTES;
+                }
+            }
+            else if constexpr (std::is_same_v<std::remove_cvref_t<CharacterOf<T>>, WCHAR>)
+            {
+                if ((dwFileAttribs = GetFileAttributesW(ToStringView(file).data())) == INVALID_FILE_ATTRIBUTES)
+                {
+                    Wcm::Log->Error("Atrributes of the assocaited file is cannot obtained.", GetLastError()).Sub("File", file);
+                    return INVALID_FILE_ATTRIBUTES;
+                }
+            }
+            else
+            {
+                return INVALID_FILE_ATTRIBUTES;
+            }
+            return dwFileAttribs;
         }
     }
 }

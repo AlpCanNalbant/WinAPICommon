@@ -16,20 +16,27 @@ namespace Wcm
 {
     namespace Impl
     {
-        bool GetFileHandlesReadonly(const StringLike auto &srcFile, const StringLike auto &destFile, _Out_ HANDLE &hSrcFile, _Out_ HANDLE &hDestFile);
         template <Character T = std::filesystem::path::value_type>
         inline constexpr T Separator = static_cast<T>(std::filesystem::path::preferred_separator);
+
+        bool GetFileHandlesReadonly(const StringLike auto &srcFile, const StringLike auto &destFile, _Out_ HANDLE &hSrcFile, _Out_ HANDLE &hDestFile);
+        template <StringLike T>
+        [[nodiscard]] DWORD GetFileAttribs(const T &file);
     }
     inline constexpr char Separator = Impl::Separator<char>;
     inline constexpr wchar_t WSeparator = Impl::Separator<wchar_t>;
 
     [[nodiscard]] std::filesystem::path ToBaseDirectory(const StringLike auto &path);
+    [[nodiscard]] std::filesystem::path CutPath(const std::filesystem::path &path, const std::filesystem::path &itemName, bool inReverse = false);
     [[nodiscard]] std::filesystem::path GetBaseDirectory();
     [[nodiscard]] std::filesystem::path GetSourceDirectory(const std::source_location &location = std::source_location::current());
     template <StringLike T>
     [[nodiscard]] bool IsFileExists(const T &file);
+    template <StringLike T>
+    [[nodiscard]] bool IsDirectoryExists(const T &dir);
     [[nodiscard]] bool IsFileNewer(const StringLike auto &srcFile, const StringLike auto &destFile);
     bool UpdateFileContent(const StringLike auto &srcFile, const StringLike auto &destFile);
+    bool UpdateFileContent(const StringLike auto &srcFile, const StringLike auto &destFile, bool &isError);
     template <StringLike T>
     bool MakeDirectory(const T &dir);
     template <StringLike T>
