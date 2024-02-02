@@ -17,18 +17,21 @@ namespace Wcm
     concept Character = ByteCharacter<T> || WideCharacter<T>;
 
     template <typename T>
+    concept Array = std::is_bounded_array_v<std::remove_cvref_t<T>>;
+
+    template <typename T>
+    concept ByteCharacterArray = Array<T> && ByteCharacter<std::remove_extent_t<std::remove_cvref_t<T>>>;
+    template <typename T>
+    concept WideCharacterArray = Array<T> && WideCharacter<std::remove_extent_t<std::remove_cvref_t<T>>>;
+    template <typename T>
+    concept CharacterArray = ByteCharacterArray<T> || WideCharacterArray<T>;
+
+    template <typename T>
     concept ByteCharacterPointer = std::is_pointer_v<std::remove_cvref_t<T>> && ByteCharacter<std::remove_pointer_t<std::remove_cvref_t<T>>>;
     template <typename T>
     concept WideCharacterPointer = std::is_pointer_v<std::remove_cvref_t<T>> && WideCharacter<std::remove_pointer_t<std::remove_cvref_t<T>>>;
     template <typename T>
     concept CharacterPointer = ByteCharacterPointer<T> || WideCharacterPointer<T>;
-
-    template <typename T>
-    concept ByteCharacterArray = std::is_array_v<std::remove_cvref_t<T>> && ByteCharacter<std::remove_extent_t<std::remove_cvref_t<T>>>;
-    template <typename T>
-    concept WideCharacterArray = std::is_array_v<std::remove_cvref_t<T>> && WideCharacter<std::remove_extent_t<std::remove_cvref_t<T>>>;
-    template <typename T>
-    concept CharacterArray = ByteCharacterArray<T> || WideCharacterArray<T>;
 
     template <typename T>
     concept ByteCharacterString =
