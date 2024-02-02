@@ -3,6 +3,7 @@
 #pragma once
 #include <cstring>
 #include <functional>
+#include "StringCommon.hpp"
 
 namespace Wcm
 {
@@ -182,12 +183,6 @@ namespace Wcm
     inline constexpr CRBeginT CRBegin{};
     inline constexpr REndT REnd{};
     inline constexpr CREndT CREnd{};
-
-    namespace Impl
-    {
-        template <typename T>
-        size_t GetStringLength(const T &t) noexcept;
-    }
 }
 
 #include "Ranges.inl"

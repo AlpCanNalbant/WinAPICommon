@@ -61,7 +61,7 @@ namespace Wcm
         }
         else
         {
-            return t + Impl::GetStringLength(t);
+            return t + GetStringLength(t);
         }
     }
     template <Range T>
@@ -86,7 +86,7 @@ namespace Wcm
         }
         else
         {
-            return t + Impl::GetStringLength(t);
+            return t + GetStringLength(t);
         }
     }
     template <Range T>
@@ -107,12 +107,11 @@ namespace Wcm
     {
         if constexpr (!CharacterPointer<T>)
         {
-            std::vector<int> d;
             return std::ranges::rbegin(std::forward<T>(t));
         }
         else
         {
-            return std::make_reverse_iterator(t + Impl::GetStringLength(t));
+            return std::make_reverse_iterator(t + GetStringLength(t));
         }
     }
     template <Range T>
@@ -137,7 +136,7 @@ namespace Wcm
         }
         else
         {
-            return std::make_reverse_iterator(t + Impl::GetStringLength(t));
+            return std::make_reverse_iterator(t + GetStringLength(t));
         }
     }
     template <Range T>
@@ -200,31 +199,6 @@ namespace Wcm
         else
         {
             return noexcept(std::ranges::crend(std::declval<T&>()));
-        }
-    }
-
-    namespace Impl
-    {
-        template <typename T>
-        size_t GetStringLength(const T &t) noexcept
-        {
-            if constexpr (requires { { std::strlen(t) } -> std::same_as<size_t>; })
-            {
-                return std::strlen(t);
-            }
-            else if constexpr (requires { { std::wcslen(t) } -> std::same_as<size_t>; })
-            {
-                return std::wcslen(t);
-            }
-            else
-            {
-                size_t i = 0;
-                while (t[i])
-                {
-                    ++i;
-                }
-                return i;
-            }
         }
     }
 }
