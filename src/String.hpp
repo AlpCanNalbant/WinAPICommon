@@ -1,7 +1,6 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
 #pragma once
-#include <cstring>
 #include <memory>
 #include <locale>
 #include <codecvt>
@@ -10,6 +9,7 @@
 #include <string_view>
 #include <type_traits>
 #include "Ranges.hpp"
+#include "StringCommon.hpp"
 
 namespace Wcm
 {
@@ -76,8 +76,14 @@ namespace Wcm
         using ToWStringIfResult = ToWStringIfResultT<T>::Type;
     }
 
+    template <StringLike T>
+    void ToQuoted(T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
+    template <StringLike T>
+    [[nodiscard]] auto ToQuoted(const T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
     template <Character T>
     [[nodiscard]] std::shared_ptr<T> ToBuffer(std::basic_string_view<T> str);
+    template <StringLike T>
+    [[nodiscard]] auto GetData(T &&t);
     template <StringLike T>
     [[nodiscard]] std::basic_string_view<CharacterOf<T>> ToStringView(const T &str);
     [[nodiscard]] Impl::StringConverter::byte_string ToString(const auto &wide)
@@ -90,8 +96,8 @@ namespace Wcm
     [[nodiscard]] Impl::ToWStringIfResult<T> ToWStringIf(const T &string);
     template <Character T>
     [[nodiscard]] bool IsSameString(std::basic_string_view<T> str1, std::basic_string_view<T> str2, bool caseSensitive = false);
-    template <Character... Chars>
-    [[nodiscard]] DWORD GetStringLength(const Chars*... str);
+    template <CharacterPointer T>
+    [[nodiscard]] constexpr size_t GetStringLength(const T begin, const T end) noexcept;
     template <Character T>
     [[nodiscard]] DWORD GetMultiStringLength(const T *buffer, bool countNullTerminators = false);
 }

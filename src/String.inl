@@ -2,6 +2,31 @@
 
 namespace Wcm
 {
+    template <StringLike T>
+    void ToQuoted(T &str, const CharacterOf<T> delim, const CharacterOf<T> escape)
+    {
+        auto data = const_cast<ToPointer<decltype(GetBuffer(str))>>(GetBuffer(str));
+        if (auto end = End(data); (*data) == delim && (*End(data)) == delim)
+        {
+            auto dataRef = std::addressof(data);
+            ++dataRef;
+            *end = '\0';
+        }
+        data = std::quoted(data, delim, escape);
+    }
+
+    template <StringLike T>
+    auto ToQuoted(const T &str, const CharacterOf<T> delim, const CharacterOf<T> escape)
+    {
+        auto view = ToStringView(str);
+        if (view.starts_with(delim) && view.ends_with(delim))
+        {
+            view.remove_prefix(1);
+            view.remove_suffix(1);
+        }
+        return std::quoted(view, delim, escape);
+    }
+
     template <Character T>
     std::shared_ptr<T> ToBuffer(std::basic_string_view<T> str)
     {
@@ -11,15 +36,32 @@ namespace Wcm
     }
 
     template <StringLike T>
+    auto GetData(T &&t)
+    {
+        if constexpr ( requires { std::ranges::data(t); })
+        {
+            return std::ranges::data(t);
+        }
+        else if constexpr ( requires { std::ranges::data(t.native()); })
+        {
+            return std::ranges::data(t.native());
+        }
+        else if constexpr (CharacterPointer<T>)
+        {
+            return t;
+        }
+    }
+
+    template <StringLike T>
     std::basic_string_view<CharacterOf<T>> ToStringView(const T &str)
     {
         if constexpr (!std::same_as<std::remove_cvref_t<T>, std::filesystem::path>)
         {
-            return {Wcm::Begin(str), Wcm::End(str)};
+            return {Begin(str), End(str)};
         }
         else
         {
-            return {Wcm::Begin(str.native()), Wcm::End(str.native())};
+            return {Begin(str.native()), End(str.native())};
         }
     }
 
@@ -120,45 +162,10 @@ namespace Wcm
             { return std::towlower(static_cast<std::wint_t>(c1)) == std::towlower(static_cast<std::wint_t>(c2)); });
     }
 
-    template <Character... Chars>
-    DWORD GetStringLength(const Chars *...str)
+    template <CharacterPointer T>
+    constexpr size_t GetStringLength(const T begin, const T end) noexcept
     {
-        if constexpr (auto &&t = std::forward_as_tuple(str...);
-                      IsEqual<1, Chars...>)
-        {
-            if constexpr ( requires { { std::strlen(std::get<0>(t)) } -> std::same_as<size_t>; } ||
-                           requires { { std::wcslen(std::get<0>(t)) } -> std::same_as<size_t>; } )
-            {
-                if constexpr (WideCharacter<First<Chars...>>)
-                {
-                    return std::wcslen(std::get<0>(t));
-                }
-                else
-                {
-                    return std::strlen(std::get<0>(t));
-                }
-            }
-            else
-            {
-                DWORD i = 0;
-                while (std::get<0>(t)[i])
-                {
-                    ++i;
-                }
-                return i;
-            }
-        }
-        else
-        {
-            if constexpr (WideCharacter<First<Chars...>>)
-            {
-                return std::distance(std::get<0>(t), std::get<1>(t));
-            }
-            else
-            {
-                return std::get<1>(t) - std::get<0>(t);
-            }
-        }
+        return end - begin;
     }
 
     template <Character T>
