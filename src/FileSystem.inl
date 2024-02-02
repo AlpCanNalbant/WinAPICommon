@@ -10,7 +10,7 @@ namespace Wcm
         std::wstring pathString;
         pathString += ToWStringIf(ToStringView(path));
         auto buffer = const_cast<PWSTR>(pathString.data());
-        std::replace(Wcm::RBegin(buffer), Wcm::REnd(buffer), L'/', L'\\');
+        std::replace(RBegin(buffer), REnd(buffer), L'/', L'\\');
         if (PathCchRemoveFileSpec(buffer, pathString.length()) != S_OK)
         {
             pathString = buffer; // The data pointed to may have changed, so update it before any operation with it.
@@ -21,7 +21,7 @@ namespace Wcm
         std::string pathString;
         pathString += ToStringIf(ToStringView(path));
         auto buffer = const_cast<LPSTR>(pathString.data());
-        std::replace(Wcm::RBegin(buffer), Wcm::REnd(buffer), '/', '\\');
+        std::replace(RBegin(buffer), REnd(buffer), '/', '\\');
         if (!PathRemoveFileSpecA(buffer))
         {
             pathString = buffer;
@@ -103,7 +103,7 @@ namespace Wcm
         {
             return false;
         }
-        if (const auto baseDir = Wcm::ToBaseDirectory(destFile); !Wcm::IsDirectoryExists(baseDir))
+        if (const auto baseDir = ToBaseDirectory(destFile); !IsDirectoryExists(baseDir))
         {
             if (!MakeDirectories(baseDir))
             {
@@ -171,8 +171,8 @@ namespace Wcm
         const auto dirsView = ToStringView(dirs);
         const auto isSeparator = [] (auto c) -> bool { return c == '/' || c == '\\'; };
         const auto getFind = [&isSeparator] (auto begin, auto end) { return std::find_if(std::find_if_not(begin, end, isSeparator), end, isSeparator); };
-        auto pos = Wcm::Begin(dirsView);
-        const auto end = Wcm::End(dirsView);
+        auto pos = Begin(dirsView);
+        const auto end = End(dirsView);
         current.reserve(dirsView.length());
         while (pos != end)
         {
