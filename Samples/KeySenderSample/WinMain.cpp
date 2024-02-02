@@ -1,6 +1,10 @@
 #include "WinAPICommon.hpp"
 
+#ifdef WCM_UNICODE
+int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t *argv[])
+#elif
 int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
+#endif
 {
     Wcm::Log->OutputFile = Wcm::GetBaseDirectory() / "KeySender.log";
     Wcm::Log->Info("The Key Sender process is has been started by the user.");
