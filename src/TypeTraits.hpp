@@ -2,6 +2,7 @@
 
 #pragma once
 #include <tuple>
+#include "StringCommon.hpp"
 
 namespace Wcm
 {
@@ -11,15 +12,6 @@ namespace Wcm
     struct RemoveAllT<T, T>
     {
         using Type = T;
-    };
-
-    template <typename T>
-    struct ToConstPointerT { };
-    template <typename T>
-        requires requires { typename std::add_pointer_t<std::add_const_t<std::remove_const_t<std::remove_pointer_t<T>>>>; }
-    struct ToConstPointerT<T>
-    {
-        using Type = std::add_pointer_t<std::add_const_t<std::remove_pointer_t<T>>>;
     };
 
     template <typename... Types>
@@ -67,20 +59,19 @@ namespace Wcm
         requires (sizeof...(Types) >= Min && sizeof...(Types) <= Max)
     struct IsInRangeT<Min, Max, Types...> : std::true_type { };
 
+    // If value of the npos was used for when the type is not an array, it will not be error prone, even for the array of chars 'char arr[std::variant_npos]'.
     template <typename T>
-    struct CharacterOfT { };
-    template <typename T>
-        requires requires { typename std::remove_cvref_t<T>::value_type; }
-    struct CharacterOfT<T>
-    {
-        using Type = typename std::remove_cvref_t<T>::value_type;
-    };
-    template <typename T>
-        requires CharacterPointer<T> || CharacterArray<T>
-    struct CharacterOfT<T>
-    {
-        using Type = typename RemoveAllT<T>::Type;
-    };
+    struct CountOfT : std::integral_constant<int, -1> { };
+    template <typename T, size_t Length>
+    struct CountOfT<T[Length]> : std::integral_constant<size_t, Length> { };
+    template <typename T, size_t Length>
+    struct CountOfT<const T[Length]> : std::integral_constant<size_t, Length> { };
+    template <typename T, size_t Length>
+    struct CountOfT<const T(&)[Length]> : std::integral_constant<size_t, Length> { };
+    template <typename T, size_t Length>
+    struct CountOfT<T(&&)[Length]> : std::integral_constant<size_t, Length> { };
+    template <typename T, size_t Length>
+    struct CountOfT<const T(&&)[Length]> : std::integral_constant<size_t, Length> { };
 
     template <size_t Index, typename... Types>
     using At = std::tuple_element_t<Index, std::tuple<Types...>>;
@@ -95,9 +86,13 @@ namespace Wcm
     template <typename T>
     using RemoveAll = RemoveAllT<T>::Type;
     template <typename T>
-    using ToConstPointer = ToConstPointerT<T>::Type;
+    using ToPointer = std::add_pointer_t<std::remove_const_t<std::remove_pointer_t<T>>>;
     template <typename T>
-    using CharacterOf = CharacterOfT<T>::Type;
+    using ToConstPointer = std::add_pointer_t<std::add_const_t<std::remove_pointer_t<T>>>;
+
+    template <typename T>
+    inline constexpr CountOfT<T>::value_type CountOf = CountOfT<T>::value;
+    consteval auto GetCount(auto &&arr) noexcept; // When you just don't want to use decltype.
 
     template <typename... Types>
     inline constexpr bool IsAllSame = IsAllSameT<Types...>::value;
@@ -114,3 +109,5 @@ namespace Wcm
     template <size_t Min, size_t Max, typename... Types>
     inline constexpr bool IsInRange = IsInRangeT<Min, Max, Types...>::value;
 }
+
+#include "TypeTraits.inl"
