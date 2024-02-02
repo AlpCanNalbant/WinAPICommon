@@ -107,7 +107,7 @@ set IsDynamicLibrary=False
     goto :SwitchCaseEnd
     :Case_0
         set SourceDirectory=%BaseDirectory%src
-        set SourceFiles=Log KeySender System FileSystem Registry RegistryKey
+        set SourceFiles=Log KeySender System String FileSystem Registry RegistryKey
         set ProjectName=WinAPICommon
         set PrecompiledHeader=%SourceDirectory%/Precompiled
         set IsStaticLibrary=True
@@ -188,7 +188,7 @@ set DebugBuildOptions=-D _DEBUG -O0 -g
 @REM Set the variables of the release mode building process.
 set ReleaseBuildOptions=-D NDEBUG -O2 -s
 
-set StandardBuildOptions=-std=c++2b -m64 -municode -D UNICODE -D _UNICODE
+set StandardBuildOptions=-std=c++20 -m64 -municode -D UNICODE -D _UNICODE -D WINVER=0x0A00 -D _WIN32_WINNT=0x0A00
 
 if /I "%BuildMode%"=="Debug" (
     set BuildOptions=%StandardBuildOptions% %DebugBuildOptions% %CompilerWarningOptions%
