@@ -76,6 +76,57 @@ namespace Wcm
         using ToWStringIfResult = ToWStringIfResultT<T>::Type;
     }
 
+    struct UnorderedContainsT : std::true_type
+    {
+        [[nodiscard]] bool operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept;
+        [[nodiscard]] bool operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept;
+        [[nodiscard]] bool operator()(CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept;
+
+    private:
+        template <Character T>
+        [[nodiscard]] bool UnorderedContains(const T *lhs, const T *rhs, const size_t lhsLen, const size_t rhsLen) const noexcept;
+    };
+
+    struct ContainsT : std::true_type
+    {
+        [[nodiscard]] bool operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept;
+        [[nodiscard]] bool operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept;
+        [[nodiscard]] bool operator()(CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept;
+
+    private:
+        template <Character T>
+        [[nodiscard]] bool Contains(const T *lhs, const T *rhs, const size_t lhsLen, const size_t rhsLen) const noexcept;
+    };
+
+    template <typename T>
+    struct CharacterOfT { };
+    template <typename T>
+        requires requires { typename std::remove_cvref_t<T>::value_type; }
+    struct CharacterOfT<T>
+    {
+        using Type = typename std::remove_cvref_t<T>::value_type;
+    };
+    template <typename T>
+        requires CharacterPointer<T> || CharacterArray<T>
+    struct CharacterOfT<T>
+    {
+        using Type = typename RemoveAllT<T>::Type;
+    };
+    template <Character T>
+    struct CharacterOfT<T>
+    {
+        using Type = std::remove_cvref_t<T>;
+    };
+
+    template <typename T>
+    using CharacterOf = CharacterOfT<T>::Type;
+
+    template <CharacterRawString T>
+    inline constexpr CountOfT<T>::value_type LengthOf = std::conditional_t<CountOfT<T>::value != -1, CountOfT<T>, std::integral_constant<int, 0>>::value - 1;
+
+    inline constexpr UnorderedContainsT UnorderedContains{};
+    inline constexpr ContainsT Contains{};
+
     template <StringLike T>
     void ToQuoted(T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
     template <StringLike T>

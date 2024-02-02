@@ -2,6 +2,124 @@
 
 namespace Wcm
 {
+    bool UnorderedContainsT::operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept
+    {
+#ifdef WCM_CPP23
+        if (lhs.size() >= rhs.size())
+        {
+            return lhs.contains(rhs);
+        }
+        else
+        {
+            return rhs.contains(lhs);
+        }
+#else
+        if (lhs.size() >= rhs.size())
+        {
+            return lhs.find(rhs) != std::string::npos;
+        }
+        else
+        {
+            return rhs.find(lhs) != std::string::npos;
+        }
+#endif
+    }
+
+    bool UnorderedContainsT::operator()(CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept
+    {
+        if constexpr (Array<decltype(lhs)> && Array<decltype(rhs)>)
+        {
+            return UnorderedContains(lhs, rhs, LengthOf<decltype(lhs)>, LengthOf<decltype(rhs)>);
+        }
+        else if constexpr (Array<decltype(lhs)>)
+        {
+            return UnorderedContains(lhs, rhs, LengthOf<decltype(lhs)>, GetStringLength(rhs));
+        }
+        else if constexpr (Array<decltype(rhs)>)
+        {
+            return UnorderedContains(lhs, rhs, GetStringLength(lhs), LengthOf<decltype(rhs)>);
+        }
+        else
+        {
+            return UnorderedContains(lhs, rhs, GetStringLength(lhs), GetStringLength(rhs));
+        }
+    }
+
+    template <Character T>
+    bool UnorderedContainsT::UnorderedContains(const T *lhs, const T *rhs, const size_t lhsLen, const size_t rhsLen) const noexcept
+    {
+        if (lhsLen == rhsLen)
+        {
+            return std::memcmp(rhs, lhs, sizeof(T) * lhsLen) == 0;
+        }
+        else if (lhsLen < rhsLen)
+        {
+            for (auto i = 0uz; (i + lhsLen) <= rhsLen; ++i, ++rhs)
+            {
+                if (std::memcmp(lhs, rhs, sizeof(T) * lhsLen) == 0)
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            for (auto i = 0uz; (i + rhsLen) <= lhsLen; ++i, ++lhs)
+            {
+                if (std::memcmp(rhs, lhs, sizeof(T) * rhsLen) == 0)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool ContainsT::operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept
+    {
+#ifdef WCM_CPP23
+        return lhs.contains(rhs);
+#else
+        return lhs.find(rhs) != std::string::npos;
+#endif
+    }
+
+    bool ContainsT::operator()(CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept
+    {
+        if constexpr (Array<decltype(lhs)> && Array<decltype(rhs)>)
+        {
+            return Contains(lhs, rhs, LengthOf<decltype(lhs)>, LengthOf<decltype(rhs)>);
+        }
+        else if constexpr (Array<decltype(lhs)>)
+        {
+            return Contains(lhs, rhs, LengthOf<decltype(lhs)>, GetStringLength(rhs));
+        }
+        else if constexpr (Array<decltype(rhs)>)
+        {
+            return Contains(lhs, rhs, GetStringLength(lhs), LengthOf<decltype(rhs)>);
+        }
+        else
+        {
+            return Contains(lhs, rhs, GetStringLength(lhs), GetStringLength(rhs));
+        }
+    }
+
+    template <Character T>
+    bool ContainsT::Contains(const T *lhs, const T *rhs, const size_t lhsLen, const size_t rhsLen) const noexcept
+    {
+        if (lhsLen > rhsLen)
+        {
+            for (auto i = 0uz; (i + rhsLen) <= lhsLen; ++i, ++lhs)
+            {
+                if (std::memcmp(lhs, rhs, sizeof(T) * rhsLen) == 0)
+                {
+                    return true;
+                }
+            }
+        }
+        return std::memcmp(lhs, rhs, sizeof(T) * lhsLen) == 0;
+    }
+
     template <StringLike T>
     void ToQuoted(T &str, const CharacterOf<T> delim, const CharacterOf<T> escape)
     {
