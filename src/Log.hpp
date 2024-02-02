@@ -42,13 +42,18 @@ namespace Wcm
             template <LoggableMessage... Msgs>
             Log &Sub(const Msgs &...titledSubMessage)
                 requires IsEqual<2, Msgs...>;
+
             [[nodiscard]] std::basic_string<TCHAR> GetLastErrorMessage() const;
             [[nodiscard]] std::basic_string<TCHAR> ToErrorMessage(const HRESULT errorCode) const;
 
         private:
             template <LoggableMessage T>
-            void Error(const T &reason, const ErrorType type, const std::source_location &location);
+            Log &Error(const T &reason, const ErrorType type, const std::source_location &location);
+            template <LoggableMessage... Msgs>
+            Log &WriteSubLine(const Character auto *mark, const Msgs &...titledSubMessage)
+                requires IsEqual<2, Msgs...>;
 
+            const char mySubMark_[8] = {"    |__"};
             std::wofstream fileStream_;
             HRESULT errorCode_;
 
