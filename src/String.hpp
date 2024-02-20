@@ -6,13 +6,38 @@
 #include <codecvt>
 #include <wchar.h>
 #include <cwctype>
+#include <cwchar>
 #include <string_view>
 #include <type_traits>
 #include "Ranges.hpp"
 #include "StringCommon.hpp"
+#include "TypeTraits.hpp"
 
 namespace Wcm
 {
+    template <typename T>
+    struct CharacterOfT { };
+    template <typename T>
+        requires requires { typename std::remove_cvref_t<T>::value_type; }
+    struct CharacterOfT<T>
+    {
+        using Type = typename std::remove_cvref_t<T>::value_type;
+    };
+    template <typename T>
+        requires CharacterPointer<T> || CharacterArray<T>
+    struct CharacterOfT<T>
+    {
+        using Type = RemoveAll<T>;
+    };
+    template <Character T>
+    struct CharacterOfT<T>
+    {
+        using Type = std::remove_cvref_t<T>;
+    };
+
+    template <typename T>
+    using CharacterOf = CharacterOfT<T>::Type;
+
     namespace Impl
     {
         using StringConverter =
@@ -49,7 +74,7 @@ namespace Wcm
             requires IsByteString<T> && std::is_pointer_v<std::decay_t<T>>
         struct ToStringIfResultT<T>
         {
-            using Type = std::add_const_t<std::decay_t<T>>;
+            using Type = std::decay_t<std::add_const_t<T>>;
         };
 
         template <typename T>
@@ -74,69 +99,77 @@ namespace Wcm
         using ToStringIfResult = ToStringIfResultT<T>::Type;
         template <typename T>
         using ToWStringIfResult = ToWStringIfResultT<T>::Type;
+
+        struct IgnoreArrayLengthT { explicit IgnoreArrayLengthT() = default; };
+        inline constexpr IgnoreArrayLengthT IgnoreArrayLength{};
+
+        struct UnorderedContainsT
+        {
+            [[nodiscard]] constexpr bool operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept;
+            [[nodiscard]] bool operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept;
+            [[nodiscard]] constexpr bool operator()(CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept;
+            [[nodiscard]] constexpr bool operator()(IgnoreArrayLengthT, CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept;
+
+        private:
+            template <Character T>
+            [[nodiscard]] constexpr bool UnorderedContains(const T *lhs, const T *rhs, const size_t lhsLen, const size_t rhsLen) const noexcept;
+        };
+
+        struct ContainsT
+        {
+            [[nodiscard]] constexpr bool operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept;
+            [[nodiscard]] bool operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept;
+            [[nodiscard]] constexpr bool operator()(CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept;
+            [[nodiscard]] constexpr bool operator()(IgnoreArrayLengthT, CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept;
+
+        private:
+            template <Character T>
+            [[nodiscard]] constexpr bool Contains(const T *lhs, const T *const rhs, const size_t lhsLen, const size_t rhsLen) const noexcept;
+        };
+
+        struct IsSameStringT
+        {
+            template <StringLike T, StringLike U>
+                requires std::same_as<CharacterOf<T>, CharacterOf<U>>
+            [[nodiscard]] constexpr bool operator()(const T &lhs, const U &rhs) const noexcept;
+            template <StringLike T, StringLike U>
+                requires std::same_as<CharacterOf<T>, CharacterOf<U>>
+            [[nodiscard]] constexpr bool operator()(const T &lhs, const U &rhs, const std::same_as<bool> auto caseSensitive) const noexcept;
+            template <StringLike T, StringLike U>
+                requires std::same_as<CharacterOf<T>, CharacterOf<U>>
+            [[nodiscard]] constexpr bool operator()(const T &lhs, const U &rhs, const size_t length, const bool caseSensitive = false) const noexcept;
+
+        private:
+            template <Character T>
+                requires std::same_as<T, T>
+            [[nodiscard]] constexpr bool IsSameString(std::basic_string_view<T> lhs, std::basic_string_view<T> rhs, const std::same_as<bool> auto caseSensitive) const noexcept;
+            template <Character T>
+                requires std::same_as<T, T>
+            [[nodiscard]] constexpr bool IsSameString(std::basic_string_view<T> lhs, std::basic_string_view<T> rhs, const size_t length, const bool caseSensitive) const noexcept;
+        };
     }
 
-    struct UnorderedContainsT : std::true_type
-    {
-        [[nodiscard]] bool operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept;
-        [[nodiscard]] bool operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept;
-        [[nodiscard]] bool operator()(CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept;
-
-    private:
-        template <Character T>
-        [[nodiscard]] bool UnorderedContains(const T *lhs, const T *rhs, const size_t lhsLen, const size_t rhsLen) const noexcept;
-    };
-
-    struct ContainsT : std::true_type
-    {
-        [[nodiscard]] bool operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept;
-        [[nodiscard]] bool operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept;
-        [[nodiscard]] bool operator()(CharacterRawString auto &&lhs, CharacterRawString auto &&rhs) const noexcept;
-
-    private:
-        template <Character T>
-        [[nodiscard]] bool Contains(const T *lhs, const T *rhs, const size_t lhsLen, const size_t rhsLen) const noexcept;
-    };
-
-    template <typename T>
-    struct CharacterOfT { };
-    template <typename T>
-        requires requires { typename std::remove_cvref_t<T>::value_type; }
-    struct CharacterOfT<T>
-    {
-        using Type = typename std::remove_cvref_t<T>::value_type;
-    };
-    template <typename T>
-        requires CharacterPointer<T> || CharacterArray<T>
-    struct CharacterOfT<T>
-    {
-        using Type = typename RemoveAllT<T>::Type;
-    };
-    template <Character T>
-    struct CharacterOfT<T>
-    {
-        using Type = std::remove_cvref_t<T>;
-    };
-
-    template <typename T>
-    using CharacterOf = CharacterOfT<T>::Type;
-
     template <CharacterRawString T>
-    inline constexpr CountOfT<T>::value_type LengthOf = std::conditional_t<CountOfT<T>::value != -1, CountOfT<T>, std::integral_constant<int, 0>>::value - 1;
+    inline constexpr auto LengthOf = std::conditional_t<CountOf<T> != -1, std::integral_constant<size_t, CountOf<T>>, std::integral_constant<int, 0>>::value - 1;
 
-    inline constexpr UnorderedContainsT UnorderedContains{};
-    inline constexpr ContainsT Contains{};
+    inline constexpr Impl::UnorderedContainsT UnorderedContains{};
+    inline constexpr Impl::ContainsT Contains{};
+    inline constexpr Impl::IsSameStringT IsSameString{};
 
     template <StringLike T>
-    void ToQuoted(T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
+    std::basic_string_view<CharacterOf<T>> SetQuoted(T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
     template <StringLike T>
-    [[nodiscard]] auto ToQuoted(const T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
+    [[nodiscard]] std::basic_string<CharacterOf<T>> ToQuoted(const T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
+    template <StringLike T>
+    [[nodiscard]] std::basic_string<CharacterOf<T>> ToUnquoted(const T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
+    template <StringLike T>
+    [[nodiscard]] std::vector<std::basic_string<CharacterOf<T>>> ToUnquoteds(const T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
     template <Character T>
     [[nodiscard]] std::shared_ptr<T> ToBuffer(std::basic_string_view<T> str);
     template <StringLike T>
     [[nodiscard]] auto GetData(T &&t);
     template <StringLike T>
-    [[nodiscard]] std::basic_string_view<CharacterOf<T>> ToStringView(const T &str);
+    [[nodiscard]] constexpr std::basic_string_view<CharacterOf<T>> ToStringView(const T &str);
     [[nodiscard]] Impl::StringConverter::byte_string ToString(const auto &wide)
         requires Impl::IsConvertibleWString<decltype(wide)>;
     template <typename T>
@@ -145,12 +178,6 @@ namespace Wcm
         requires Impl::IsConvertibleString<decltype(narrow)>;
     template <typename T>
     [[nodiscard]] Impl::ToWStringIfResult<T> ToWStringIf(const T &string);
-    template <Character T>
-    [[nodiscard]] bool IsSameString(std::basic_string_view<T> str1, std::basic_string_view<T> str2, bool caseSensitive = false);
-    template <CharacterPointer T>
-    [[nodiscard]] constexpr size_t GetStringLength(const T begin, const T end) noexcept;
-    template <Character T>
-    [[nodiscard]] DWORD GetMultiStringLength(const T *buffer, bool countNullTerminators = false);
 }
 
 #include "String.inl"

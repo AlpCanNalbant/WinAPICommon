@@ -2,7 +2,7 @@
 
 #include "String.hpp"
 
-namespace Wcm
+namespace Wcm::Impl
 {
     bool UnorderedContainsT::operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept
     {
