@@ -1,6 +1,8 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
 #pragma once
+#include <concepts>
+#include <type_traits>
 #include <string_view>
 #include <filesystem>
 
