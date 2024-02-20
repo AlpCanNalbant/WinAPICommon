@@ -12,6 +12,8 @@
 #include <winbase.h>
 #include "Log.hpp"
 
+#define FILE_ATTRIBUTE_NOT_FOUND 0x00000000
+
 namespace Wcm
 {
     namespace Impl
@@ -21,6 +23,7 @@ namespace Wcm
 
         bool GetFileHandlesReadonly(const StringLike auto &srcFile, const StringLike auto &destFile, _Out_ HANDLE &hSrcFile, _Out_ HANDLE &hDestFile);
         template <StringLike T>
+            requires std::disjunction_v<std::is_same<CharacterOf<T>, CHAR>, std::is_same<CharacterOf<T>, WCHAR>>
         [[nodiscard]] DWORD GetFileAttribs(const T &file);
     }
     inline constexpr char Separator = Impl::Separator<char>;
@@ -42,7 +45,6 @@ namespace Wcm
     template <StringLike T>
     bool MakeDirectories(const T &dirs);
     template <StringLike T>
-        requires std::same_as<CharacterOf<T>, CharacterOf<T>>
     [[nodiscard]] bool IsSameFile(const T &srcFile, const T &destFile);
     [[nodiscard]] bool IsSameFile(const StringLike auto &srcFile, const StringLike auto &destFile);
 }
