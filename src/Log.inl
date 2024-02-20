@@ -32,13 +32,13 @@ namespace Wcm::Impl
 #ifndef NDEBUG
             if (fileStream_.fail())
             {
-                std::wcerr << ErrorMark << ' ' << "An error occurred while closing the file stream.\n";
+                std::wcerr << ErrorMark << ' ' << "Error occurred while closing the file stream.\n";
                 return *this;
             }
 #endif
         }
 #ifndef NDEBUG
-        const auto isError = IsSameString(ToStringView(ErrorMark), ToStringView(ToWStringIf(mark)));
+        const auto isError = IsSameString(ErrorMark, GetData(ToWStringIf(mark)));
         if (isError)
         {
             std::wcerr << mark << ' ';
@@ -111,7 +111,7 @@ namespace Wcm::Impl
     Log &Log::Sub(const Msgs &...titledSubMessage)
         requires IsEqual<2, Msgs...>
     {
-        return WriteSubLine("    |___", titledSubMessage...);
+        return WriteSubLine("    |____", titledSubMessage...);
     }
 
     template <LoggableMessage... Msgs>
