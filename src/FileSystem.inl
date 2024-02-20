@@ -35,9 +35,12 @@ namespace Wcm
     template <StringLike T>
     bool IsFileExists(const T &file)
     {
-        if (const DWORD dwFileAttribs = Impl::GetFileAttribs(file); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
+        if constexpr ( requires { { Impl::GetFileAttribs(file) } -> std::same_as<DWORD>; } )
         {
-            return !(dwFileAttribs & FILE_ATTRIBUTE_DIRECTORY);
+            if (const DWORD dwFileAttribs = Impl::GetFileAttribs(file); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
+            {
+                return (dwFileAttribs != FILE_ATTRIBUTE_NOT_FOUND) && !(dwFileAttribs & FILE_ATTRIBUTE_DIRECTORY);
+            }
         }
         return std::filesystem::is_regular_file(file);
     }
@@ -45,9 +48,12 @@ namespace Wcm
     template <StringLike T>
     bool IsDirectoryExists(const T &dir)
     {
-        if (const DWORD dwFileAttribs = Impl::GetFileAttribs(dir); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
+        if constexpr ( requires { { Impl::GetFileAttribs(dir) } -> std::same_as<DWORD>; } )
         {
-            return (dwFileAttribs & FILE_ATTRIBUTE_DIRECTORY);
+            if (const DWORD dwFileAttribs = Impl::GetFileAttribs(dir); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
+            {
+                return (dwFileAttribs != FILE_ATTRIBUTE_NOT_FOUND) && (dwFileAttribs & FILE_ATTRIBUTE_DIRECTORY);
+            }
         }
         return std::filesystem::is_directory(dir);
     }
@@ -188,7 +194,6 @@ namespace Wcm
     }
 
     template <StringLike T>
-        requires std::same_as<CharacterOf<T>, CharacterOf<T>>
     bool IsSameFile(const T &srcFile, const T &destFile)
     {
 #define WCM_FILESYSTEM_ISSAMEFILE_OPEN_ERROR_LOG(file) Log->Error("Equivalence comparison file is cannot opened.").Sub("ComparisonFile", file)
@@ -260,30 +265,41 @@ namespace Wcm
         }
 
         template <StringLike T>
+            requires std::disjunction_v<std::is_same<CharacterOf<T>, CHAR>, std::is_same<CharacterOf<T>, WCHAR>>
         DWORD GetFileAttribs(const T &file)
         {
-            DWORD dwFileAttribs = 0;
-            if constexpr (std::is_same_v<std::remove_cvref_t<CharacterOf<T>>, CHAR>)
+            if constexpr (std::same_as<CharacterOf<T>, CHAR>)
             {
-                if ((dwFileAttribs = GetFileAttributesA(ToStringView(file).data())) == INVALID_FILE_ATTRIBUTES)
+                if (const DWORD dwFileAttribs = GetFileAttributesA(ToStringView(file).data()); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
                 {
-                    Wcm::Log->Error("Atrributes of the assocaited file is cannot obtained.", GetLastError()).Sub("File", file);
-                    return INVALID_FILE_ATTRIBUTES;
+                    return dwFileAttribs;
                 }
-            }
-            else if constexpr (std::is_same_v<std::remove_cvref_t<CharacterOf<T>>, WCHAR>)
-            {
-                if ((dwFileAttribs = GetFileAttributesW(ToStringView(file).data())) == INVALID_FILE_ATTRIBUTES)
+                if (const DWORD dwErrCode = GetLastError(); dwErrCode == 2 || dwErrCode == 3)
                 {
-                    Wcm::Log->Error("Atrributes of the assocaited file is cannot obtained.", GetLastError()).Sub("File", file);
+                    return FILE_ATTRIBUTE_NOT_FOUND;
+                }
+                else
+                {
+                    Wcm::Log->Error("Atrributes of the assocaited file is cannot obtained.", dwErrCode).Sub("File", file);
                     return INVALID_FILE_ATTRIBUTES;
                 }
             }
             else
             {
-                return INVALID_FILE_ATTRIBUTES;
+                if (const DWORD dwFileAttribs = GetFileAttributesW(ToStringView(file).data()); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
+                {
+                    return dwFileAttribs;
+                }
+                if (const DWORD dwErrCode = GetLastError(); dwErrCode == 2 || dwErrCode == 3)
+                {
+                    return FILE_ATTRIBUTE_NOT_FOUND;
+                }
+                else
+                {
+                    Wcm::Log->Error("Atrributes of the assocaited file is cannot obtained.", dwErrCode).Sub("File", file);
+                    return INVALID_FILE_ATTRIBUTES;
+                }
             }
-            return dwFileAttribs;
         }
     }
 }
