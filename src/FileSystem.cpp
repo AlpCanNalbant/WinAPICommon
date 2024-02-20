@@ -13,16 +13,19 @@ namespace Wcm
             {
                 resPath /= *begin;
             }
-            return resPath / itemName;
+            return resPath.native().size() < path.native().size() ? resPath / itemName : path;
         }
         else
         {
             typename std::filesystem::path::string_type resPath = path.filename().native();
             for (auto begin = --path.begin(), end = ----path.end(); end != begin && itemName != *end; --end)
             {
-                resPath = (*end).native() + std::filesystem::path::preferred_separator + resPath;
+                if (std::memcmp(end->c_str(), &end->preferred_separator, sizeof(wchar_t)) != 0)
+                {
+                    resPath = (*end).native() + std::filesystem::path::preferred_separator + resPath;
+                }
             }
-            return itemName.native() + std::filesystem::path::preferred_separator + resPath;
+            return resPath.size() < path.native().size() ? std::filesystem::path{itemName.native() + std::filesystem::path::preferred_separator + resPath} : path;
         }
     }
 
