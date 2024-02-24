@@ -2,6 +2,7 @@
 
 namespace Wcm
 {
+    /* DEPRECATED
     template <StringLike T>
     std::basic_string_view<CharacterOf<T>> SetQuoted(T &str, const CharacterOf<T> delim, const CharacterOf<T> escape)
     {
@@ -22,12 +23,13 @@ namespace Wcm
         *data = '\0';
         return {begin, data};
     }
+    */
 
     template <StringLike T>
     std::basic_string<CharacterOf<T>> ToQuoted(const T &str, const CharacterOf<T> delim, const CharacterOf<T> escape)
     {
         auto view = ToStringView(str);
-        if (view.starts_with(delim) && view.ends_with(delim))
+        while (view.starts_with(delim) && view.ends_with(delim))
         {
             view.remove_prefix(1);
             view.remove_suffix(1);

@@ -103,7 +103,7 @@ namespace Wcm
         struct IgnoreArrayLengthT { explicit IgnoreArrayLengthT() = default; };
         inline constexpr IgnoreArrayLengthT IgnoreArrayLength{};
 
-        struct UnorderedContainsT
+        struct UnorderedContainsT final
         {
             [[nodiscard]] constexpr bool operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept;
             [[nodiscard]] bool operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept;
@@ -115,7 +115,7 @@ namespace Wcm
             [[nodiscard]] constexpr bool UnorderedContains(const T *lhs, const T *rhs, const size_t lhsLen, const size_t rhsLen) const noexcept;
         };
 
-        struct ContainsT
+        struct ContainsT final
         {
             [[nodiscard]] constexpr bool operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept;
             [[nodiscard]] bool operator()(const std::filesystem::path &lhs, const std::filesystem::path &rhs) const noexcept;
@@ -127,7 +127,7 @@ namespace Wcm
             [[nodiscard]] constexpr bool Contains(const T *lhs, const T *const rhs, const size_t lhsLen, const size_t rhsLen) const noexcept;
         };
 
-        struct IsSameStringT
+        struct IsSameStringT final
         {
             template <StringLike T, StringLike U>
                 requires std::same_as<CharacterOf<T>, CharacterOf<U>>
@@ -156,8 +156,8 @@ namespace Wcm
     inline constexpr Impl::ContainsT Contains{};
     inline constexpr Impl::IsSameStringT IsSameString{};
 
-    template <StringLike T>
-    std::basic_string_view<CharacterOf<T>> SetQuoted(T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
+    // template <StringLike T>
+    // std::basic_string_view<CharacterOf<T>> SetQuoted(T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
     template <StringLike T>
     [[nodiscard]] std::basic_string<CharacterOf<T>> ToQuoted(const T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
     template <StringLike T>
