@@ -10,7 +10,7 @@ namespace Wcm
 {
     namespace Impl
     {
-        struct BeginT
+        struct BeginT final
         {
             template <Range T>
             [[nodiscard]] constexpr Iterator<T> operator()(T &&t) const noexcept(IsNoexcept<T>());
@@ -18,7 +18,7 @@ namespace Wcm
             template <Range T>
             [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
         };
-        struct CBeginT
+        struct CBeginT final
         {
             template <Range T>
             [[nodiscard]] constexpr ConstIterator<T> operator()(T &&t) const noexcept(IsNoexcept<T>());
@@ -26,7 +26,7 @@ namespace Wcm
             template <Range T>
             [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
         };
-        struct EndT
+        struct EndT final
         {
             template <Range T>
             [[nodiscard]] constexpr Sentinel<T> operator()(T &&t) const noexcept(IsNoexcept<T>());
@@ -34,7 +34,7 @@ namespace Wcm
             template <Range T>
             [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
         };
-        struct CEndT
+        struct CEndT final
         {
             template <Range T>
             [[nodiscard]] constexpr ConstSentinel<T> operator()(T &&t) const noexcept(IsNoexcept<T>());
@@ -43,7 +43,7 @@ namespace Wcm
             [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
         };
 
-        struct RBeginT
+        struct RBeginT final
         {
             template <Range T>
             [[nodiscard]] constexpr ReverseIterator<Iterator<T>> operator()(T &&t) const noexcept(IsNoexcept<T>());
@@ -51,7 +51,7 @@ namespace Wcm
             template <Range T>
             [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
         };
-        struct CRBeginT
+        struct CRBeginT final
         {
             template <Range T>
             [[nodiscard]] constexpr ReverseIterator<ConstIterator<T>> operator()(T &&t) const noexcept(IsNoexcept<T>());
@@ -59,7 +59,7 @@ namespace Wcm
             template <Range T>
             [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
         };
-        struct REndT
+        struct REndT final
         {
             template <Range T>
             [[nodiscard]] constexpr ReverseIterator<Sentinel<T>> operator()(T &&t) const noexcept(IsNoexcept<T>());
@@ -67,7 +67,7 @@ namespace Wcm
             template <Range T>
             [[nodiscard]] static constexpr bool IsNoexcept() noexcept;
         };
-        struct CREndT
+        struct CREndT final
         {
             template <Range T>
             [[nodiscard]] constexpr ReverseIterator<ConstSentinel<T>> operator()(T &&t) const noexcept(IsNoexcept<T>());

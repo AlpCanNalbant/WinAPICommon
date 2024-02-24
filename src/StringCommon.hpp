@@ -10,7 +10,7 @@ namespace Wcm
 {
     namespace Impl
     {
-        struct GetStringLengthT
+        struct GetStringLengthT final
         {
             template <CharacterStringAny T>
             [[nodiscard]] constexpr size_t operator()(const T &str) const noexcept;
