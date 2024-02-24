@@ -27,7 +27,4 @@ namespace Wcm
             }
         }
     }
-
-    inline constexpr Impl::template IsNotNullTerminator<false> IsNotNullTerminator{};
-    inline constexpr Impl::template IsNotNullTerminator<true> IsNotNullTerminatorMulti{};
 }
