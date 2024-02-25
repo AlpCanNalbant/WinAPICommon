@@ -33,6 +33,24 @@ namespace Wcm
     }
 
     template <StringLike T>
+    std::filesystem::path ToPathName(const T &path)
+    {
+        auto pathView = ToStringView(path);
+        while (pathView.ends_with('\\') || pathView.ends_with('/'))
+        {
+            pathView.remove_suffix(1); // Remove last slashes from given path.
+        }
+        if constexpr (WideCharacter<CharacterOf<T>>)
+        {
+    		return pathView.substr(pathView.find_last_of(L"\\/") + 1uz);
+        }
+        else
+        {
+            return pathView.substr(pathView.find_last_of("\\/") + 1uz);
+        }
+    }
+
+    template <StringLike T>
     bool IsFileExists(const T &file)
     {
         if constexpr ( requires { { Impl::GetFileAttribs(file) } -> std::same_as<DWORD>; } )

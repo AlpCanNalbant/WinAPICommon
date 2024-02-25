@@ -30,6 +30,8 @@ namespace Wcm
     inline constexpr wchar_t WSeparator = Impl::Separator<wchar_t>;
 
     [[nodiscard]] std::filesystem::path ToBaseDirectory(const StringLike auto &path);
+    template <StringLike T>
+    [[nodiscard]] std::filesystem::path ToPathName(const T &path);
     [[nodiscard]] std::filesystem::path CutPath(const std::filesystem::path &path, const std::filesystem::path &itemName, bool inReverse = false);
     [[nodiscard]] std::filesystem::path GetBaseDirectory();
     [[nodiscard]] std::filesystem::path GetSourceDirectory(const std::source_location &location = std::source_location::current());
