@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 3.28 FATAL_ERROR)
 project(WinAPICommon LANGUAGES CXX)
 
-set(WINAPICOMMON_CPP_VERSION 20 CACHE STRING "C++ language version." FORCE)
+get_property(WinAPICommonLanguageVersion GLOBAL PROPERTY WINAPICOMMON_LANGUAGE_VERSION)
+if(NOT "${WinAPICommonLanguageVersion}" STREQUAL "")
+    set(WINAPICOMMON_CPP_VERSION ${WinAPICommonLanguageVersion} CACHE STRING "C++ language version." FORCE)
+else()
+    set(WINAPICOMMON_CPP_VERSION 20 CACHE STRING "C++ language version." FORCE)
+endif()
+
 set_property(CACHE WINAPICOMMON_CPP_VERSION PROPERTY STRINGS 20 23)
 if(WINAPICOMMON_CPP_VERSION LESS 20)
     message(FATAL_ERROR "Minimum allowed language version is C++20.")
