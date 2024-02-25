@@ -18,7 +18,7 @@ namespace Wcm
     namespace Impl
     {
         template <Character T>
-        auto GetProcessInfo();
+        [[nodiscard]] auto GetProcessInfo();
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(LPCWSTR app, LPWSTR args);
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(LPCSTR app, LPSTR args);
     }
