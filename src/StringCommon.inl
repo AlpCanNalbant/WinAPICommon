@@ -3,7 +3,7 @@
 namespace Wcm
 {
     template <CharacterPointer T>
-    constexpr DWORD GetMultiStringLength(ToConstPointerConst<T> buffer, bool countNullTerminators) noexcept
+    constexpr DWORD GetMultiStringLength(const T *const buffer, bool countNullTerminators) noexcept
     {
         DWORD len = countNullTerminators;
         for (int i = 0; buffer[i] || buffer[i + 1]; ++i)
@@ -23,7 +23,7 @@ namespace Wcm
 
         template <Character T>
         constexpr size_t GetStringLengthT::operator()(const T *str) const noexcept
-            requires (requires { { std::strlen(str) } -> std::same_as<size_t>; } || requires { { std::wcslen(str) } -> std::same_as<size_t>; })
+            requires(requires { { std::strlen(str) } -> std::same_as<size_t>; } || requires { { std::wcslen(str) } -> std::same_as<size_t>; })
         {
             if (!std::is_constant_evaluated())
             {
