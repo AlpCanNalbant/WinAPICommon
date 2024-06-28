@@ -101,18 +101,14 @@ if /I "%Param3%"=="Y" set IsKeepOpenEnabled=True
 if /I "%Param3%"=="N" set IsKeepOpenEnabled=False
 
 if not "%BuilderConfiguration%"=="" (
-    call %BuilderConfiguration% %BuildMode% InputLocker
-    @REM Check is error happened or not after the call. But setlocal make this variable in-accessible.
-    @REM set TaskExitCode=%ErrorLevel%
-    @REM If fatal-error occured after the call.
-    @REM if %TaskExitCode%==1 goto :FatalError
+    call %BuilderConfiguration% %BuildMode% WinAPICommon
 )
 
 if "%BinaryOutputsDirectory%"=="" (
-    set BinaryOutputsDirectory=%BaseDirectory%bin/%BuildMode%
+    set BinaryOutputsDirectory=%BaseDirectory%bin\%BuildMode%
 )
 if "%ObjectOutputsDirectory%"=="" (
-    set ObjectOutputsDirectory=%BaseDirectory%obj/%BuildMode%
+    set ObjectOutputsDirectory=%BaseDirectory%obj\%BuildMode%
 )
 
 set IsStaticLibrary=False
@@ -126,7 +122,7 @@ set IsDynamicLibrary=False
     goto :SwitchCaseEnd
     :Case_0
         set SourceDirectory=%BaseDirectory%src
-        set SourceFiles=Log KeySender System StringCommon String FileSystem Registry RegistryKey
+        set SourceFiles=Log KeySender System SystemCommon StringCommon String FileSystem Registry RegistryKey
         set ProjectName=WinAPICommon
         set PrecompiledHeader=%SourceDirectory%/Precompiled
         set IsStaticLibrary=True
@@ -235,17 +231,16 @@ for %%s in (%SourceFiles%) do (
     %Compiler% -fdiagnostics-color=always %PrecompiledHeader% %IncludeDirectories% %BuildOptions% -c %SourceDirectory%\%%s%SourceFilesExtension% -o %ObjectOutputsDirectory%/%%s.o
 )
 
+if %IsCalledFromAnotherBuilder%==False (
+    set "ArchiverOutputsDirectory=%BinaryOutputsDirectory%"
+) else (
+    set "ArchiverOutputsDirectory=%ObjectOutputsDirectory%"
+)
+
 @REM Start the linking process of current executable or static library project. Shared library projects does not supported yet.
 if %IsLibrary%==False (
     %Compiler% %StaticLibraryDirectories% %BuildOptions% -o %BinaryOutputsDirectory%/%ProjectName%.exe %ObjectFiles% -static %AllStaticLibraries%
 ) else (
-    if %IsCalledFromAnotherBuilder%==False (
-        set "ArchiverOutputsDirectory=%BinaryOutputsDirectory%"
-    )
-    else (
-        set "ArchiverOutputsDirectory=%ObjectOutputsDirectory%"
-    )
-
     %Archiver% rcs %ArchiverOutputsDirectory%/lib%ProjectName%.a %ObjectFiles%
 )
 
