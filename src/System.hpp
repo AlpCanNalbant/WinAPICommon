@@ -2,18 +2,19 @@
 
 #pragma once
 #include <concepts>
-#include "String.hpp"
+#include "SystemCommon.hpp"
+#include "Log.hpp"
 
 namespace Wcm
 {
-    [[nodiscard]] std::wstring GetDate();
-    [[nodiscard]] std::wstring GetDesktopName();
-    [[nodiscard]] std::wstring GetPCName();
     bool EnablePrivilegeValue([[maybe_unused]] LPCWSTR lpszPrivilege, bool bEnablePrivilege);
     [[nodiscard]] HANDLE OpenProcessFromID(DWORD processID);
     template <StringLike T>
     std::shared_ptr<PROCESS_INFORMATION> Execute(const T &app, const T &args = {});
-    void CloseWindow(HWND hWnd);
+    template <StringLike T>
+    std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, bool runAsAdmin = false);
+    template <StringLike T>
+    std::shared_ptr<void> RunCommand(const T &command, bool runAsAdmin = false);
 
     namespace Impl
     {
