@@ -76,13 +76,20 @@ set /P "Param3=. >> You are entered invalid terminal keep open condition please 
 if "%Param3%"=="" goto :Param3Prompt
 if /I not "%Param3%"=="Y" if /I not "%Param3%"=="N" goto :Param3PromptWrong
 
-call :WaitForPendingOperationBeginWithOneDot
-echo .... ______________________________________________________________
-echo .... ##############################################################
-echo .... Welcome to Builder of The Windows API Common Helper Project^^!
-echo .... ##############################################################
-echo .... ______________________________________________________________
-call :WaitForPendingOperationBeginWithThreeDot
+set "Param4=%~4"
+set "BuilderConfiguration=%Param4%"
+
+if "%BuilderConfiguration%"=="" (set IsCalledFromAnotherBuilder=False) else (set IsCalledFromAnotherBuilder=True)
+
+if %IsCalledFromAnotherBuilder%==False (
+    call :WaitForPendingOperationBeginWithOneDot
+    echo .... ______________________________________________________________
+    echo .... ##############################################################
+    echo .... Welcome to Builder of The Windows API Common Helper Project^^!
+    echo .... ##############################################################
+    echo .... ______________________________________________________________
+    call :WaitForPendingOperationBeginWithThreeDot
+)
 
 @REM Store the values of the sended parameters from the caller.
 set ProjectIndex=%Param1%
@@ -93,8 +100,20 @@ if /I "%Param2%"=="R" set BuildMode=Release
 if /I "%Param3%"=="Y" set IsKeepOpenEnabled=True
 if /I "%Param3%"=="N" set IsKeepOpenEnabled=False
 
-set BinaryOutputsDirectory=%BaseDirectory%bin/%BuildMode%
-set ObjectOutputsDirectory=%BaseDirectory%obj/%BuildMode%
+if not "%BuilderConfiguration%"=="" (
+    call %BuilderConfiguration% %BuildMode% InputLocker
+    @REM Check is error happened or not after the call. But setlocal make this variable in-accessible.
+    @REM set TaskExitCode=%ErrorLevel%
+    @REM If fatal-error occured after the call.
+    @REM if %TaskExitCode%==1 goto :FatalError
+)
+
+if "%BinaryOutputsDirectory%"=="" (
+    set BinaryOutputsDirectory=%BaseDirectory%bin/%BuildMode%
+)
+if "%ObjectOutputsDirectory%"=="" (
+    set ObjectOutputsDirectory=%BaseDirectory%obj/%BuildMode%
+)
 
 set IsStaticLibrary=False
 set IsDynamicLibrary=False
@@ -213,14 +232,21 @@ if not "%PrecompiledHeader%"=="" set PrecompiledHeader=-include %PrecompiledHead
 @REM Create their object files from their source files of the current project for the linking operation.
 @REM Source files used with their full paths. Relative paths do not used because can clickable in VSCode terminal in this way.
 for %%s in (%SourceFiles%) do (
-    %Compiler% %PrecompiledHeader% %IncludeDirectories% %BuildOptions% -c %SourceDirectory%\%%s%SourceFilesExtension% -o %ObjectOutputsDirectory%/%%s.o
+    %Compiler% -fdiagnostics-color=always %PrecompiledHeader% %IncludeDirectories% %BuildOptions% -c %SourceDirectory%\%%s%SourceFilesExtension% -o %ObjectOutputsDirectory%/%%s.o
 )
 
 @REM Start the linking process of current executable or static library project. Shared library projects does not supported yet.
 if %IsLibrary%==False (
     %Compiler% %StaticLibraryDirectories% %BuildOptions% -o %BinaryOutputsDirectory%/%ProjectName%.exe %ObjectFiles% -static %AllStaticLibraries%
 ) else (
-    %Archiver% rcs %BinaryOutputsDirectory%/lib%ProjectName%.a %ObjectFiles%
+    if %IsCalledFromAnotherBuilder%==False (
+        set "ArchiverOutputsDirectory=%BinaryOutputsDirectory%"
+    )
+    else (
+        set "ArchiverOutputsDirectory=%ObjectOutputsDirectory%"
+    )
+
+    %Archiver% rcs %ArchiverOutputsDirectory%/lib%ProjectName%.a %ObjectFiles%
 )
 
 goto :EndOfBuildOperation
