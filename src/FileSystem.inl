@@ -42,7 +42,7 @@ namespace Wcm
         }
         if constexpr (WideCharacter<CharacterOf<T>>)
         {
-    		return pathView.substr(pathView.find_last_of(L"\\/") + 1uz);
+            return pathView.substr(pathView.find_last_of(L"\\/") + 1uz);
         }
         else
         {
@@ -53,7 +53,7 @@ namespace Wcm
     template <StringLike T>
     bool IsFileExists(const T &file)
     {
-        if constexpr ( requires { { Impl::GetFileAttribs(file) } -> std::same_as<DWORD>; } )
+        if constexpr (requires { { Impl::GetFileAttribs(file) } -> std::same_as<DWORD>; })
         {
             if (const DWORD dwFileAttribs = Impl::GetFileAttribs(file); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
             {
@@ -66,7 +66,7 @@ namespace Wcm
     template <StringLike T>
     bool IsDirectoryExists(const T &dir)
     {
-        if constexpr ( requires { { Impl::GetFileAttribs(dir) } -> std::same_as<DWORD>; } )
+        if constexpr (requires { { Impl::GetFileAttribs(dir) } -> std::same_as<DWORD>; })
         {
             if (const DWORD dwFileAttribs = Impl::GetFileAttribs(dir); dwFileAttribs != INVALID_FILE_ATTRIBUTES)
             {
@@ -146,6 +146,43 @@ namespace Wcm
         return true;
     }
 
+    template <Character T>
+    bool SearchTextLineByLine(const std::filesystem::path &file, const std::string &searchText, std::string &foundLine)
+    {
+        std::basic_fstream<T> ifs;
+        ifs.open(file);
+        if (!ifs.is_open())
+        {
+            // Win32 codes is running under implementation of the ifstream and this windows only library so GetLastError() can be used when any error happened.
+            Wcm::Log->Error("Could not open the file to search.", GetLastError());
+            return false;
+        }
+
+        constexpr auto strToUpper = [](const std::basic_string<T> &src, std::basic_string<T> &dest)
+        {
+            std::ranges::transform(src.cbegin(), src.cend(), dest.begin(),
+                                   [](const T c) -> T
+                                   { return std::toupper(c, std::locale("en_US.utf8")); });
+        };
+
+        std::basic_string<T> insensSrchText;
+        strToUpper(searchText, insensSrchText);
+
+        std::basic_string<T> insensLine;
+        while (ifs)
+        {
+            std::getline(ifs, foundLine);
+
+            strToUpper(foundLine, insensLine);
+            if (insensLine.find(insensSrchText) != std::basic_string<T>::npos)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     template <StringLike T>
     bool MakeDirectory(const T &dir)
     {
@@ -193,8 +230,10 @@ namespace Wcm
     {
         std::basic_string<CharacterOf<T>> current;
         const auto dirsView = ToStringView(dirs);
-        const auto isSeparator = [] (auto c) -> bool { return c == '/' || c == '\\'; };
-        const auto getFind = [&isSeparator] (auto begin, auto end) { return std::find_if(std::find_if_not(begin, end, isSeparator), end, isSeparator); };
+        const auto isSeparator = [](auto c) -> bool
+        { return c == '/' || c == '\\'; };
+        const auto getFind = [&isSeparator](auto begin, auto end)
+        { return std::find_if(std::find_if_not(begin, end, isSeparator), end, isSeparator); };
         auto pos = Begin(dirsView);
         const auto end = End(dirsView);
         current.reserve(dirsView.length());
@@ -233,7 +272,8 @@ namespace Wcm
         {
             return false;
         }
-        stream1.seekg(0, std::basic_ifstream<Chr>::beg); stream2.seekg(0, std::basic_ifstream<Chr>::beg);
+        stream1.seekg(0, std::basic_ifstream<Chr>::beg);
+        stream2.seekg(0, std::basic_ifstream<Chr>::beg);
         return std::equal(std::istreambuf_iterator<Chr>{stream1.rdbuf()}, std::istreambuf_iterator<Chr>{}, std::istreambuf_iterator<Chr>{stream2.rdbuf()});
     }
 
@@ -274,7 +314,7 @@ namespace Wcm
                 return false;
             }
             if ((hDestFile = CreateFileW(reinterpret_cast<LPCWSTR>(ToWStringIf(ToStringView(destFile)).data()),
-                FILE_READ_ATTRIBUTES, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr)) == INVALID_HANDLE_VALUE)
+                                         FILE_READ_ATTRIBUTES, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr)) == INVALID_HANDLE_VALUE)
             {
                 Wcm::Log->Error("Handle of the destination file is cannot be obtained.", GetLastError()).Sub("DestinationFile", destFile);
                 return false;

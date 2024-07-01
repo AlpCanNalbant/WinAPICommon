@@ -42,6 +42,8 @@ namespace Wcm
     [[nodiscard]] bool IsFileNewer(const StringLike auto &srcFile, const StringLike auto &destFile);
     bool UpdateFileContent(const StringLike auto &srcFile, const StringLike auto &destFile);
     bool UpdateFileContent(const StringLike auto &srcFile, const StringLike auto &destFile, bool &isError);
+    template <Character T>
+    bool SearchTextLineByLine(const std::filesystem::path &file, const std::basic_string<T> &searchText, std::basic_string<T> &foundLine);
     template <StringLike T>
     bool MakeDirectory(const T &dir);
     template <StringLike T>
