@@ -151,7 +151,7 @@ namespace Wcm
     {
         using Char = CharacterOf<decltype(searchText)>;
         std::basic_fstream<Char> ifs;
-        ifs.open(file);
+        ifs.open(file, std::ios::in);
         if (!ifs.is_open())
         {
             // Win32 codes is running under implementation of the ifstream and this windows only library so GetLastError() can be used when any error happened.
@@ -161,6 +161,7 @@ namespace Wcm
 
         constexpr auto strToUpper = [](CharacterStringView auto src, std::basic_string<Char> &dest)
         {
+            dest.resize(src.size());
             std::ranges::transform(src.cbegin(), src.cend(), dest.begin(),
                                    [](const Char c)
                                    { return std::toupper(static_cast<unsigned char>(c)); });
@@ -170,11 +171,10 @@ namespace Wcm
         strToUpper(ToStringView(searchText), insensSrchText);
 
         std::basic_string<Char> insensLine;
-        while (ifs)
+        while (std::getline(ifs, foundLine))
         {
-            std::getline(ifs, foundLine);
-
             strToUpper(ToStringView(foundLine), insensLine);
+
             if (insensLine.find(insensSrchText) != std::basic_string<Char>::npos)
             {
                 return true;
