@@ -192,7 +192,7 @@ set StaticLibraries=%PrefixedStaticLibraries%
 set StaticLibraryDirectories=%PrefixedStaticLibraryDirectories%
 
 @REM Set the compiler variables of the static libraries for the linking process.
-set StaticWin32Libraries=-lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32
+set StaticWin32Libraries=-lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -lUser32
 set StaticMinGWLibraries=-static-libgcc -static-libstdc++ -lpthread
 set AllStaticLibraries=%StaticLibraries% %StaticWin32Libraries% %StaticMinGWLibraries%
 
