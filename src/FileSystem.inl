@@ -159,7 +159,7 @@ namespace Wcm
             return false;
         }
 
-        constexpr auto strToUpper = [](CharacterStringView src, std::basic_string<Char> &dest)
+        constexpr auto strToUpper = [](CharacterStringView auto src, std::basic_string<Char> &dest)
         {
             std::ranges::transform(src.cbegin(), src.cend(), dest.begin(),
                                    [](const Char c)
