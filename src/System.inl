@@ -4,38 +4,39 @@ namespace Wcm
 {
     std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args)
     {
-        typename std::conditional_t<WideCharacter<CharacterOf<T>>, LPWSTR, LPSTR> appStr = nullptr, argsStr;
-        if constexpr (const auto command = ToStringView(app), commandLine = ToStringView(args);
-                      WideCharacter<CharacterOf<T>>)
+        const auto command = ToStringView(app);
+        const auto commandLine = ToStringView(args);
+
+        typename std::conditional_t<WideCharacter<CharacterOf<decltype(command)>>, LPWSTR, LPSTR> appStr = nullptr;
+        typename std::conditional_t<WideCharacter<CharacterOf<decltype(commandLine)>>, LPWSTR, LPSTR> argsStr = nullptr;
+
+        constexpr auto castString = [](CharacterPointer auto &destStr, const CharacterStringView auto &sourceStrView)
         {
-            if constexpr (std::same_as<CharacterOf<T>, WCHAR>)
+            if constexpr (WideCharacter<CharacterOf<decltype(sourceStrView)>>)
             {
-                appStr = const_cast<LPWSTR>(command.data());
-                argsStr = const_cast<LPWSTR>(commandLine.data());
+                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, WCHAR>)
+                {
+                    destStr = const_cast<LPWSTR>(sourceStrView.data());
+                }
+                else
+                {
+                    destStr = reinterpret_cast<LPWSTR>(sourceStrView.data());
+                }
             }
             else
             {
-                appStr = reinterpret_cast<LPWSTR>(command.data());
-                argsStr = reinterpret_cast<LPWSTR>(commandLine.data());
+                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, CHAR>)
+                {
+                    destStr = const_cast<LPSTR>(sourceStrView.data());
+                }
+                else
+                {
+                    destStr = reinterpret_cast<LPSTR>(sourceStrView.data());
+                }
             }
-        }
-        else
-        {
-            if constexpr (std::same_as<CharacterOf<T>, CHAR>)
-            {
-                appStr = const_cast<LPSTR>(command.data());
-                argsStr = const_cast<LPSTR>(commandLine.data());
-            }
-            else
-            {
-                appStr = reinterpret_cast<LPSTR>(command.data());
-                argsStr = reinterpret_cast<LPSTR>(commandLine.data());
-            }
-        }
-        if (!appStr)
-        {
-            return nullptr;
-        }
+        };
+        castString(appStr, command);
+        castString(argsStr, commandLine);
         return Impl::CreateNewProcess(appStr, argsStr);
     }
 
