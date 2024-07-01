@@ -163,7 +163,7 @@ namespace Wcm
         {
             std::ranges::transform(src.cbegin(), src.cend(), dest.begin(),
                                    [](const Char c)
-                                   { return std::toupper(static_cast<unsigned char>(c), std::locale("en_US.utf8")); });
+                                   { return std::toupper(static_cast<unsigned char>(c)); });
         };
 
         std::basic_string<Char> insensSrchText;
