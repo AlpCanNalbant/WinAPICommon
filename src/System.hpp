@@ -9,8 +9,7 @@ namespace Wcm
 {
     bool EnablePrivilegeValue([[maybe_unused]] LPCWSTR lpszPrivilege, bool bEnablePrivilege);
     [[nodiscard]] HANDLE OpenProcessFromID(DWORD processID);
-    template <StringLike T>
-    std::shared_ptr<PROCESS_INFORMATION> Execute(const T &app, const T &args = {});
+    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args = {});
     template <StringLike T>
     std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, bool runAsAdmin = false);
     template <StringLike T>

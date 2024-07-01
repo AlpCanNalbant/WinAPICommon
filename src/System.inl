@@ -2,8 +2,7 @@
 
 namespace Wcm
 {
-    template <StringLike T>
-    std::shared_ptr<PROCESS_INFORMATION> Execute(const T &app, const T &args)
+    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args)
     {
         typename std::conditional_t<WideCharacter<CharacterOf<T>>, LPWSTR, LPSTR> appStr = nullptr, argsStr;
         if constexpr (const auto command = ToStringView(app), commandLine = ToStringView(args);
