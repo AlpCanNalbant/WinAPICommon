@@ -146,10 +146,11 @@ namespace Wcm
         return true;
     }
 
-    template <Character T>
-    bool SearchTextLineByLine(const std::filesystem::path &file, const std::string &searchText, std::string &foundLine)
+    bool SearchTextLineByLine(const std::filesystem::path &file, const StringLike auto &searchText, CharacterString auto &foundLine)
+        requires std::same_as<CharacterOf<decltype(searchText)>, CharacterOf<decltype(foundLine)>>
     {
-        std::basic_fstream<T> ifs;
+        using Char = CharacterOf<decltype(searchText)>;
+        std::basic_fstream<Char> ifs;
         ifs.open(file);
         if (!ifs.is_open())
         {
@@ -158,23 +159,23 @@ namespace Wcm
             return false;
         }
 
-        constexpr auto strToUpper = [](const std::basic_string<T> &src, std::basic_string<T> &dest)
+        constexpr auto strToUpper = [](CharacterStringView src, std::basic_string<Char> &dest)
         {
             std::ranges::transform(src.cbegin(), src.cend(), dest.begin(),
-                                   [](const T c) -> T
-                                   { return std::toupper(c, std::locale("en_US.utf8")); });
+                                   [](const Char c)
+                                   { return std::toupper(static_cast<unsigned char>(c), std::locale("en_US.utf8")); });
         };
 
-        std::basic_string<T> insensSrchText;
-        strToUpper(searchText, insensSrchText);
+        std::basic_string<Char> insensSrchText;
+        strToUpper(ToStringView(searchText), insensSrchText);
 
-        std::basic_string<T> insensLine;
+        std::basic_string<Char> insensLine;
         while (ifs)
         {
             std::getline(ifs, foundLine);
 
-            strToUpper(foundLine, insensLine);
-            if (insensLine.find(insensSrchText) != std::basic_string<T>::npos)
+            strToUpper(ToStringView(foundLine), insensLine);
+            if (insensLine.find(insensSrchText) != std::basic_string<Char>::npos)
             {
                 return true;
             }
