@@ -2,6 +2,10 @@
 
 #include "WinAPICommon.hpp"
 
+BOOL CALLBACK EnumWindowCallback(HWND, LPARAM);
+HWND foundhWnd = NULL;
+wchar_t const *windowTitleToFind = nullptr;
+
 namespace Wcm
 {
     bool EnablePrivilegeValue(LPCWSTR lpszPrivilege, bool bEnablePrivilege)
@@ -63,6 +67,30 @@ namespace Wcm
         return hProcess;
     }
 
+    HWND FindHWND(std::string_view windowTitle)
+    {
+        FindHWND(Wcm::ToWStringIf(windowTitle));
+    }
+    HWND FindHWND(std::wstring_view windowTitle)
+    {
+        windowTitleToFind = windowTitle.data();
+        int enumWinResult;
+        if (enumWinResult = EnumWindows(EnumWindowCallback, NULL); (enumWinResult != 0) || ((enumWinResult == 0) && (windowTitleToFind != NULL)))
+        {
+            Wcm::Log->Info(L"The process of enumerating the window handles has finished successfully.");
+        }
+        else
+        {
+            Wcm::Log->Error(L"An error happened while enumerating the window handles.", GetLastError());
+        }
+
+        if (foundhWnd == NULL)
+        {
+            Wcm::Log->Error(L"Window handle of the process is cannot found.").Sub("WindowTitle", windowTitle);
+        }
+        return foundhWnd;
+    }
+
     namespace Impl
     {
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(LPCWSTR app, LPWSTR args)
@@ -84,5 +112,31 @@ namespace Wcm
             Wcm::Log->Error("Creation of process is failed.", GetLastError()).Sub("Process", app);
             return nullptr;
         }
+    }
+
+    BOOL CALLBACK EnumWindowCallback(HWND hWnd, LPARAM lparam)
+    {
+        if (foundhWnd)
+        {
+            return FALSE;
+        }
+
+        int length = GetWindowTextLengthW(hWnd);
+        if (length > 0)
+        {
+            WCHAR buffer[length + 1] = {'\0'};
+            GetWindowTextW(hWnd, buffer, length + 1);
+            std::wstring windowTitle{buffer};
+            // Do not bload the log messages with this info.
+            // Wcm::Log->Info(std::wstring{L"Name of the current window handle is "} + buffer + L'.');
+            if (windowTitle.find(windowTitleToFind) != std::wstring::npos)
+            {
+                foundhWnd = hWnd;
+                Wcm::Log->Info(L"Window handle of the process is found!").Sub("WindowTitle", windowTitle);
+                return FALSE;
+            }
+        }
+
+        return TRUE;
     }
 }

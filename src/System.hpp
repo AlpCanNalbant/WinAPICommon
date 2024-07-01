@@ -15,6 +15,8 @@ namespace Wcm
     std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, bool runAsAdmin = false);
     template <StringLike T>
     std::shared_ptr<void> RunCommand(const T &command, bool runAsAdmin = false);
+    [[nodiscard]] HWND FindHWND(std::string_view windowTitle);
+    [[nodiscard]] HWND FindHWND(std::wstring_view windowTitle);
 
     namespace Impl
     {
