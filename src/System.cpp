@@ -113,30 +113,30 @@ namespace Wcm
             return nullptr;
         }
     }
+}
 
-    BOOL CALLBACK EnumWindowCallback(HWND hWnd, LPARAM lparam)
+BOOL CALLBACK EnumWindowCallback(HWND hWnd, LPARAM lparam)
+{
+    if (foundhWnd)
     {
-        if (foundhWnd)
+        return FALSE;
+    }
+
+    int length = GetWindowTextLengthW(hWnd);
+    if (length > 0)
+    {
+        WCHAR buffer[length + 1] = {'\0'};
+        GetWindowTextW(hWnd, buffer, length + 1);
+        std::wstring windowTitle{buffer};
+        // Do not bload the log messages with this info.
+        // Wcm::Log->Info(std::wstring{L"Name of the current window handle is "} + buffer + L'.');
+        if (windowTitle.find(windowTitleToFind) != std::wstring::npos)
         {
+            foundhWnd = hWnd;
+            Wcm::Log->Info(L"Window handle of the process is found!").Sub("WindowTitle", windowTitle);
             return FALSE;
         }
-
-        int length = GetWindowTextLengthW(hWnd);
-        if (length > 0)
-        {
-            WCHAR buffer[length + 1] = {'\0'};
-            GetWindowTextW(hWnd, buffer, length + 1);
-            std::wstring windowTitle{buffer};
-            // Do not bload the log messages with this info.
-            // Wcm::Log->Info(std::wstring{L"Name of the current window handle is "} + buffer + L'.');
-            if (windowTitle.find(windowTitleToFind) != std::wstring::npos)
-            {
-                foundhWnd = hWnd;
-                Wcm::Log->Info(L"Window handle of the process is found!").Sub("WindowTitle", windowTitle);
-                return FALSE;
-            }
-        }
-
-        return TRUE;
     }
+
+    return TRUE;
 }

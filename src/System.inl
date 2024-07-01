@@ -3,6 +3,8 @@
 namespace Wcm
 {
     std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args)
+        requires((WideCharacter<CharacterOf<decltype(app)>> && WideCharacter<CharacterOf<decltype(args)>>) ||
+                 (ByteCharacter<CharacterOf<decltype(app)>> && ByteCharacter<CharacterOf<decltype(args)>>))
     {
         const auto command = ToStringView(app);
         const auto commandLine = ToStringView(args);
@@ -37,6 +39,7 @@ namespace Wcm
         };
         castString(appStr, command);
         castString(argsStr, commandLine);
+
         return Impl::CreateNewProcess(appStr, argsStr);
     }
 

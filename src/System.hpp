@@ -3,13 +3,16 @@
 #pragma once
 #include <concepts>
 #include "SystemCommon.hpp"
+#include "Concepts.hpp"
 #include "Log.hpp"
 
 namespace Wcm
 {
     bool EnablePrivilegeValue([[maybe_unused]] LPCWSTR lpszPrivilege, bool bEnablePrivilege);
     [[nodiscard]] HANDLE OpenProcessFromID(DWORD processID);
-    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args = {});
+    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args = {})
+        requires((WideCharacter<CharacterOf<decltype(app)>> && WideCharacter<CharacterOf<decltype(args)>>) ||
+                 (ByteCharacter<CharacterOf<decltype(app)>> && ByteCharacter<CharacterOf<decltype(args)>>));
     template <StringLike T>
     std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, bool runAsAdmin = false);
     template <StringLike T>
