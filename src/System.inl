@@ -2,7 +2,7 @@
 
 namespace Wcm
 {
-    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args)
+    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args, ProcessCreationFlags creationFlags)
         requires((WideCharacter<CharacterOf<decltype(app)>> && WideCharacter<CharacterOf<decltype(args)>>) ||
                  (ByteCharacter<CharacterOf<decltype(app)>> && ByteCharacter<CharacterOf<decltype(args)>>))
     {
@@ -40,7 +40,7 @@ namespace Wcm
         castString(appStr, command);
         castString(argsStr, commandLine);
 
-        return Impl::CreateNewProcess(appStr, argsStr);
+        return Impl::CreateNewProcess(appStr, argsStr, creationFlags);
     }
 
     template <StringLike T>
@@ -94,8 +94,8 @@ namespace Wcm
         template <Character T>
         auto GetProcessInfo()
         {
-            const auto pi = std::shared_ptr<PROCESS_INFORMATION>(new PROCESS_INFORMATION, [](auto pi)
-                                                                 { CloseHandle(pi->hProcess); CloseHandle(pi->hThread); delete pi; });
+            const auto pi = std::shared_ptr<PROCESS_INFORMATION>(new PROCESS_INFORMATION, [](auto p)
+                                                                 { CloseHandle(p->hProcess); CloseHandle(p->hThread); delete p; });
             ZeroMemory(pi.get(), sizeof(PROCESS_INFORMATION));
             typename std::conditional_t<WideCharacter<T>, STARTUPINFOW, STARTUPINFOA> si;
             ZeroMemory(&si, sizeof(si));
