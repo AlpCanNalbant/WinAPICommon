@@ -18,7 +18,7 @@ namespace Wcm
         return Impl::CreateNewProcess(appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
     }
 
-    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, DWORD sessionId, const StringLike auto &args, DWORD creationFlags)
+    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, DWORD sessionId, const StringLike auto &args, bool isInteractive, DWORD creationFlags)
         requires((WideCharacter<CharacterOf<decltype(app)>> && WideCharacter<CharacterOf<decltype(args)>>) ||
                  (ByteCharacter<CharacterOf<decltype(app)>> && ByteCharacter<CharacterOf<decltype(args)>>))
     {
@@ -62,14 +62,14 @@ namespace Wcm
         Impl::CastString(appStr, command);
         Impl::CastString(argsStr, commandLine);
 
-        auto procInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
+        auto procInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, isInteractive ? TEXT("winsta0\\default") : NULL, creationFlags);
 
         DestroyEnvironmentBlock(lpEnvironment);
         CloseHandle(hToken);
 
         if (!procInfo)
         {
-            Wcm::Log->Error(std::wstring{L"Creating the new process is failed. "} + L"Application: " + appStr + L" Paramaters: " + argsStr, GetLastError()); // .Sub("Application", appName).Sub("Paramaters", commandLine);
+            Wcm::Log->Error(L"Creating the new process is failed.", GetLastError()).Sub(L"Application", appStr).Sub("Paramaters", argsStr);
             return nullptr;
         }
 
@@ -127,12 +127,21 @@ namespace Wcm
         template <Character T>
         auto GetProcessInfo()
         {
+            return GetProcessInfo(std::basic_string_view<T>{});
+        }
+        template <Character T>
+        auto GetProcessInfo(std::basic_string_view<T> desktop)
+        {
             const auto pi = std::shared_ptr<PROCESS_INFORMATION>(new PROCESS_INFORMATION, [](auto p)
                                                                  { CloseHandle(p->hProcess); CloseHandle(p->hThread); delete p; });
             ZeroMemory(pi.get(), sizeof(PROCESS_INFORMATION));
             typename std::conditional_t<WideCharacter<T>, STARTUPINFOW, STARTUPINFOA> si;
             ZeroMemory(&si, sizeof(si));
             si.cb = sizeof(si);
+            if (!desktop.empty())
+            {
+                si.lpDesktop = const_cast<decltype(si.lpDesktop)>(desktop.data());
+            }
             return std::make_pair(pi, si);
         }
 
