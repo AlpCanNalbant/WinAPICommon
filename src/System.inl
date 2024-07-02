@@ -105,7 +105,7 @@ namespace Wcm
 
         if (!res)
         {
-            Wcm::Log->Error("Creating the new process is failed.", GetLastError());
+            Wcm::Log->Error("Creating the new process is failed.", GetLastError()).Sub("Application", appName).Sub("Paramaters", args);
             return nullptr;
         }
 
