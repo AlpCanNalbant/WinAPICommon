@@ -101,7 +101,7 @@ if /I "%Param3%"=="Y" set IsKeepOpenEnabled=True
 if /I "%Param3%"=="N" set IsKeepOpenEnabled=False
 
 if not "%BuilderConfiguration%"=="" (
-    call %BuilderConfiguration% %BuildMode% WinAPICommon
+    call %BuilderConfiguration% %BuildMode% WinAPICommon True
 )
 
 if "%BinaryOutputsDirectory%"=="" (
