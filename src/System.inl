@@ -124,7 +124,7 @@ namespace Wcm
             return nullptr;
         }
 
-        return procInfo.first;
+        return procInfo;
     }
 
     template <StringLike T>
