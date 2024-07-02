@@ -97,7 +97,8 @@ namespace Wcm
             procInfo.second.lpDesktop = "winsta0\\default";
         }
 
-        res = CreateProcessAsUser(hToken, appName, commandLine, NULL, NULL, FALSE,
+        Wcm::Log->Info(std::wstring{L"AppName: "} + appName);
+        res = CreateProcessAsUser(hToken, appName, NULL /*commandLine*/, NULL, NULL, FALSE,
                                   creationFlags, lpEnvironment, NULL, &procInfo.second, procInfo.first.get());
 
         DestroyEnvironmentBlock(lpEnvironment);
@@ -105,7 +106,7 @@ namespace Wcm
 
         if (!res)
         {
-            Wcm::Log->Error("Creating the new process is failed.", GetLastError()).Sub("Application", appName).Sub("Paramaters", args);
+            Wcm::Log->Error(L"Creating the new process is failed. " + L"Application: " + appName + L" Paramaters: " + commandLine, GetLastError()); // .Sub("Application", appName).Sub("Paramaters", commandLine);
             return nullptr;
         }
 
