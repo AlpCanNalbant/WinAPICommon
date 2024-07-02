@@ -113,12 +113,12 @@ namespace Wcm
         castString(appStr, command);
         castString(argsStr, commandLine);
 
-        auto processInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
+        auto procInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
 
         DestroyEnvironmentBlock(lpEnvironment);
         CloseHandle(hToken);
 
-        if (!processInfo)
+        if (!procInfo)
         {
             Wcm::Log->Error(std::wstring{L"Creating the new process is failed. "} + L"Application: " + appStr + L" Paramaters: " + argsStr, GetLastError()); // .Sub("Application", appName).Sub("Paramaters", commandLine);
             return nullptr;
