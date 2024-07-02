@@ -45,8 +45,6 @@ namespace Wcm
 
     std::shared_ptr<PROCESS_INFORMATION> Execute(const std::filesystem::path &app, DWORD sessionId, const StringLike auto &args, DWORD creationFlags)
     {
-        const auto commandLine = ToStringView(args);
-
         HANDLE hToken;
         if (!WTSQueryUserToken(sessionId, &hToken))
         {
@@ -78,10 +76,29 @@ namespace Wcm
             return nullptr;
         }
 
-        const auto procInfo = Impl::GetProcessInfo<CharacterOf<decltype(args)>>();
-        procInfo.second.lpDesktop = TEXT("winsta0\\default");
-        res = CreateProcessAsUser(hToken, const_cast<LPWSTR>(app.wstring().data()), (!commandLine.empty()) ? commandLine.data() : NULL, NULL, NULL, FALSE,
-                                  creationFlags, lpEnvironment, NULL, procInfo.second, procInfo.first.get());
+        using Char = CharacterOf<decltype(args)>;
+
+        typename std::conditional_t<WideCharacter<Char>, LPWSTR, LPSTR> commandLine = NULL;
+        if (Wcm::GetStringLength(args) > 0)
+        {
+            commandLine = const_cast<decltype(commandLine)>(ToStringView(args).data());
+        }
+
+        typename std::conditional_t<WideCharacter<Char>, LPCWSTR, LPCSTR> appName;
+        auto procInfo = Impl::GetProcessInfo<Char>();
+        if constexpr (WideCharacter<Char>)
+        {
+            appName = app.wstring().c_str();
+            procInfo.second.lpDesktop = L"winsta0\\default";
+        }
+        else
+        {
+            appName = app.string().c_str();
+            procInfo.second.lpDesktop = "winsta0\\default";
+        }
+
+        res = CreateProcessAsUser(hToken, appName, commandLine, NULL, NULL, FALSE,
+                                  creationFlags, lpEnvironment, NULL, &procInfo.second, procInfo.first.get());
 
         DestroyEnvironmentBlock(lpEnvironment);
         CloseHandle(hToken);
@@ -92,7 +109,7 @@ namespace Wcm
             return nullptr;
         }
 
-        return procInfo;
+        return procInfo.first;
     }
 
     template <StringLike T>
