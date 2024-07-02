@@ -122,6 +122,26 @@ namespace Wcm
             Wcm::Log->Error("Creation of process is failed.", GetLastError()).Sub("Process", app);
             return nullptr;
         }
+
+        std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(HANDLE hToken, LPCWSTR app, LPWSTR args, DWORD creationFlags)
+        {
+            if (const auto procInfo = GetProcessInfo<WCHAR>(); CreateProcessAsUserW(hToken, app, args, nullptr, nullptr, FALSE, creationFlags, nullptr, nullptr, const_cast<LPSTARTUPINFOW>(&procInfo.second), procInfo.first.get()))
+            {
+                return procInfo.first;
+            }
+            Wcm::Log->Error("Creation of process is failed.", GetLastError()).Sub("Process", app);
+            return nullptr;
+        }
+
+        std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(HANDLE hToken, LPCSTR app, LPSTR args, DWORD creationFlags)
+        {
+            if (const auto procInfo = GetProcessInfo<CHAR>(); CreateProcessAsUserA(hToken, app, args, nullptr, nullptr, FALSE, creationFlags, nullptr, nullptr, const_cast<LPSTARTUPINFOA>(&procInfo.second), procInfo.first.get()))
+            {
+                return procInfo.first;
+            }
+            Wcm::Log->Error("Creation of process is failed.", GetLastError()).Sub("Process", app);
+            return nullptr;
+        }
     }
 }
 

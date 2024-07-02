@@ -40,10 +40,12 @@ namespace Wcm
         castString(appStr, command);
         castString(argsStr, commandLine);
 
-        return Impl::CreateNewProcess(appStr, argsStr, creationFlags);
+        return Impl::CreateNewProcess(appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
     }
 
-    std::shared_ptr<PROCESS_INFORMATION> Execute(const std::filesystem::path &app, DWORD sessionId, const StringLike auto &args, DWORD creationFlags)
+    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, DWORD sessionId, const StringLike auto &args, DWORD creationFlags)
+        requires((WideCharacter<CharacterOf<decltype(app)>> && WideCharacter<CharacterOf<decltype(args)>>) ||
+                 (ByteCharacter<CharacterOf<decltype(app)>> && ByteCharacter<CharacterOf<decltype(args)>>))
     {
         HANDLE hToken;
         if (!WTSQueryUserToken(sessionId, &hToken))
@@ -76,37 +78,49 @@ namespace Wcm
             return nullptr;
         }
 
-        using Char = CharacterOf<decltype(args)>;
+        const auto command = ToStringView(app);
+        const auto commandLine = ToStringView(args);
 
-        typename std::conditional_t<WideCharacter<Char>, LPWSTR, LPSTR> commandLine = NULL;
-        if (Wcm::GetStringLength(args) > 0)
-        {
-            commandLine = const_cast<decltype(commandLine)>(ToStringView(args).data());
-        }
+        typename std::conditional_t<WideCharacter<CharacterOf<decltype(command)>>, LPWSTR, LPSTR> appStr = nullptr;
+        typename std::conditional_t<WideCharacter<CharacterOf<decltype(commandLine)>>, LPWSTR, LPSTR> argsStr = nullptr;
 
-        typename std::conditional_t<WideCharacter<Char>, LPCWSTR, LPCSTR> appName;
-        auto procInfo = Impl::GetProcessInfo<Char>();
-        if constexpr (WideCharacter<Char>)
+        constexpr auto castString = [](CharacterPointer auto &destStr, const CharacterStringView auto &sourceStrView)
         {
-            appName = app.wstring().c_str();
-            procInfo.second.lpDesktop = L"winsta0\\default";
-        }
-        else
-        {
-            appName = app.string().c_str();
-            procInfo.second.lpDesktop = "winsta0\\default";
-        }
+            if constexpr (WideCharacter<CharacterOf<decltype(sourceStrView)>>)
+            {
+                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, WCHAR>)
+                {
+                    destStr = const_cast<LPWSTR>(sourceStrView.data());
+                }
+                else
+                {
+                    destStr = reinterpret_cast<LPWSTR>(sourceStrView.data());
+                }
+            }
+            else
+            {
+                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, CHAR>)
+                {
+                    destStr = const_cast<LPSTR>(sourceStrView.data());
+                }
+                else
+                {
+                    destStr = reinterpret_cast<LPSTR>(sourceStrView.data());
+                }
+            }
+        };
 
-        Wcm::Log->Info(std::wstring{L"AppName: "} + appName);
-        res = CreateProcessAsUser(hToken, appName, NULL /*commandLine*/, NULL, NULL, FALSE,
-                                  creationFlags, lpEnvironment, NULL, &procInfo.second, procInfo.first.get());
+        castString(appStr, command);
+        castString(argsStr, commandLine);
+
+        auto processInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
 
         DestroyEnvironmentBlock(lpEnvironment);
         CloseHandle(hToken);
 
-        if (!res)
+        if (!processInfo)
         {
-            Wcm::Log->Error(std::wstring{L"Creating the new process is failed. "} + L"Application: " + appName + L" Paramaters: " + commandLine, GetLastError()); // .Sub("Application", appName).Sub("Paramaters", commandLine);
+            Wcm::Log->Error(std::wstring{L"Creating the new process is failed. "} + L"Application: " + appStr + L" Paramaters: " + argsStr, GetLastError()); // .Sub("Application", appName).Sub("Paramaters", commandLine);
             return nullptr;
         }
 
