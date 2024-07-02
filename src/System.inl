@@ -12,33 +12,8 @@ namespace Wcm
         typename std::conditional_t<WideCharacter<CharacterOf<decltype(command)>>, LPWSTR, LPSTR> appStr = nullptr;
         typename std::conditional_t<WideCharacter<CharacterOf<decltype(commandLine)>>, LPWSTR, LPSTR> argsStr = nullptr;
 
-        constexpr auto castString = [](CharacterPointer auto &destStr, const CharacterStringView auto &sourceStrView)
-        {
-            if constexpr (WideCharacter<CharacterOf<decltype(sourceStrView)>>)
-            {
-                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, WCHAR>)
-                {
-                    destStr = const_cast<LPWSTR>(sourceStrView.data());
-                }
-                else
-                {
-                    destStr = reinterpret_cast<LPWSTR>(sourceStrView.data());
-                }
-            }
-            else
-            {
-                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, CHAR>)
-                {
-                    destStr = const_cast<LPSTR>(sourceStrView.data());
-                }
-                else
-                {
-                    destStr = reinterpret_cast<LPSTR>(sourceStrView.data());
-                }
-            }
-        };
-        castString(appStr, command);
-        castString(argsStr, commandLine);
+        Impl::CastString(appStr, command);
+        Impl::CastString(argsStr, commandLine);
 
         return Impl::CreateNewProcess(appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
     }
@@ -84,34 +59,8 @@ namespace Wcm
         typename std::conditional_t<WideCharacter<CharacterOf<decltype(command)>>, LPWSTR, LPSTR> appStr = nullptr;
         typename std::conditional_t<WideCharacter<CharacterOf<decltype(commandLine)>>, LPWSTR, LPSTR> argsStr = nullptr;
 
-        constexpr auto castString = [](CharacterPointer auto &destStr, const CharacterStringView auto &sourceStrView)
-        {
-            if constexpr (WideCharacter<CharacterOf<decltype(sourceStrView)>>)
-            {
-                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, WCHAR>)
-                {
-                    destStr = const_cast<LPWSTR>(sourceStrView.data());
-                }
-                else
-                {
-                    destStr = reinterpret_cast<LPWSTR>(sourceStrView.data());
-                }
-            }
-            else
-            {
-                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, CHAR>)
-                {
-                    destStr = const_cast<LPSTR>(sourceStrView.data());
-                }
-                else
-                {
-                    destStr = reinterpret_cast<LPSTR>(sourceStrView.data());
-                }
-            }
-        };
-
-        castString(appStr, command);
-        castString(argsStr, commandLine);
+        Impl::CastString(appStr, command);
+        Impl::CastString(argsStr, commandLine);
 
         auto procInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
 
@@ -185,6 +134,32 @@ namespace Wcm
             ZeroMemory(&si, sizeof(si));
             si.cb = sizeof(si);
             return std::make_pair(pi, si);
+        }
+
+        void CastString(CharacterPointer auto &destStr, const CharacterStringView auto &sourceStrView)
+        {
+            if constexpr (WideCharacter<CharacterOf<decltype(sourceStrView)>>)
+            {
+                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, WCHAR>)
+                {
+                    destStr = const_cast<LPWSTR>(sourceStrView.data());
+                }
+                else
+                {
+                    destStr = reinterpret_cast<LPWSTR>(sourceStrView.data());
+                }
+            }
+            else
+            {
+                if constexpr (std::same_as<CharacterOf<decltype(sourceStrView)>, CHAR>)
+                {
+                    destStr = const_cast<LPSTR>(sourceStrView.data());
+                }
+                else
+                {
+                    destStr = reinterpret_cast<LPSTR>(sourceStrView.data());
+                }
+            }
         }
     }
 }
