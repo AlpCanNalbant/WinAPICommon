@@ -159,7 +159,7 @@ BOOL CALLBACK EnumWindowCallback(HWND hWnd, [[maybe_unused]] LPARAM lparam)
         GetWindowTextW(hWnd, buffer, length + 1);
         std::wstring windowTitle{buffer};
         // Do not bload the log messages with this info.
-        // Wcm::Log->Info(std::wstring{L"Name of the current window handle is "} + buffer + L'.');
+        Wcm::Log->Info(std::wstring{L"Name of the current window handle is "} + buffer + L'.');
         if (windowTitle.find(windowTitleToFind) != std::wstring::npos)
         {
             foundhWnd = hWnd;
