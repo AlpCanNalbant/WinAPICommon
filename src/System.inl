@@ -62,7 +62,7 @@ namespace Wcm
         Impl::CastString(appStr, command);
         Impl::CastString(argsStr, commandLine);
 
-        auto procInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, isInteractive ? TEXT("winsta0\\default") : NULL, creationFlags);
+        auto procInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, isInteractive ? TEXT("winsta0\\default") : TEXT(""), creationFlags);
 
         DestroyEnvironmentBlock(lpEnvironment);
         CloseHandle(hToken);
