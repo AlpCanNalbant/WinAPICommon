@@ -10,7 +10,7 @@ namespace Wcm
 {
     bool EnablePrivilegeValue([[maybe_unused]] LPCWSTR lpszPrivilege, bool bEnablePrivilege);
     [[nodiscard]] HANDLE OpenProcessFromID(DWORD processID);
-    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args = {}, DWORD creationFlags = ProcessCreationFlags::UnicodeEnvironment)
+    std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args = {}, DWORD creationFlags = ProcessCreationFlags::CreateUnicodeEnvironment)
         requires((WideCharacter<CharacterOf<decltype(app)>> && WideCharacter<CharacterOf<decltype(args)>>) ||
                  (ByteCharacter<CharacterOf<decltype(app)>> && ByteCharacter<CharacterOf<decltype(args)>>));
     template <StringLike T>
