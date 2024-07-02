@@ -73,21 +73,9 @@ namespace Wcm
     }
     HWND FindHWND(std::wstring_view windowTitle)
     {
+        foundhWnd = nullptr;
         windowTitleToFind = windowTitle.data();
-        int enumWinResult;
-        if (enumWinResult = EnumWindows(EnumWindowCallback, NULL); (enumWinResult != 0) || ((enumWinResult == 0) && (windowTitleToFind != NULL)))
-        {
-            Wcm::Log->Info(L"The process of enumerating the window handles has finished successfully.");
-        }
-        else
-        {
-            Wcm::Log->Error(L"An error happened while enumerating the window handles.", GetLastError());
-        }
-
-        if (foundhWnd == NULL)
-        {
-            Wcm::Log->Error(L"Window handle of the process is cannot found.").Sub("WindowTitle", windowTitle);
-        }
+        EnumWindows(EnumWindowCallback, NULL);
         return foundhWnd;
     }
 
