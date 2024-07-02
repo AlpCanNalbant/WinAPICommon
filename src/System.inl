@@ -106,7 +106,7 @@ namespace Wcm
 
         if (!res)
         {
-            Wcm::Log->Error(L"Creating the new process is failed. " + L"Application: " + appName + L" Paramaters: " + commandLine, GetLastError()); // .Sub("Application", appName).Sub("Paramaters", commandLine);
+            Wcm::Log->Error(std::wstring{L"Creating the new process is failed. "} + L"Application: " + appName + L" Paramaters: " + commandLine, GetLastError()); // .Sub("Application", appName).Sub("Paramaters", commandLine);
             return nullptr;
         }
 
