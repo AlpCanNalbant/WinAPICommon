@@ -69,14 +69,36 @@ namespace Wcm
 
     HWND FindHWND(std::string_view windowTitle)
     {
-        FindHWND(Wcm::ToWStringIf(windowTitle));
+        return FindHWND(Wcm::ToWStringIf(windowTitle));
     }
     HWND FindHWND(std::wstring_view windowTitle)
     {
         foundhWnd = nullptr;
         windowTitleToFind = windowTitle.data();
-        EnumWindows(EnumWindowCallback, NULL);
+        EnumWindows(EnumWindowCallback, 0);
         return foundhWnd;
+    }
+
+    DWORD GetCurrentSessionId()
+    {
+        WTS_SESSION_INFO *pSessionInfo;
+        DWORD dwSessions = 0;
+        if (!WTSEnumerateSessions(WTS_CURRENT_SERVER, 0, 1, &pSessionInfo, &dwSessions))
+        {
+            Wcm::Log->Error("Enumerating sessions failed.", GetLastError());
+            return 0;
+        }
+        DWORD sessionId = 0;
+        for (DWORD i = 0; i < dwSessions; ++i)
+        {
+            if (pSessionInfo[i].State == WTSActive)
+            {
+                sessionId = pSessionInfo[i].SessionId;
+                break;
+            }
+        }
+        WTSFreeMemory(pSessionInfo);
+        return sessionId;
     }
 
     namespace Impl

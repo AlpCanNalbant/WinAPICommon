@@ -43,6 +43,58 @@ namespace Wcm
         return Impl::CreateNewProcess(appStr, argsStr, creationFlags);
     }
 
+    std::shared_ptr<PROCESS_INFORMATION> Execute(const std::filesystem::path &app, DWORD sessionId, const StringLike auto &args, DWORD creationFlags)
+    {
+        const auto commandLine = ToStringView(args);
+
+        HANDLE hToken;
+        if (!WTSQueryUserToken(sessionId, &hToken))
+        {
+            Wcm::Log->Error("Obtaining the primary access token of the logged-on user specified by the session ID is failed.", GetLastError());
+            return nullptr;
+        }
+
+        LPVOID lpEnvironment = NULL;
+        if (!CreateEnvironmentBlock(&lpEnvironment, hToken, TRUE))
+        {
+            Wcm::Log->Error("Retrieving the environment variables for the specified user is failed.", GetLastError());
+            CloseHandle(hToken);
+            return nullptr;
+        }
+
+        TOKEN_LINKED_TOKEN lto;
+        DWORD nbytes;
+
+        WINBOOL res = GetTokenInformation(hToken, TokenLinkedToken, &lto, sizeof(lto), &nbytes);
+        CloseHandle(hToken);
+
+        if (res)
+        {
+            hToken = lto.LinkedToken;
+        }
+        else
+        {
+            Wcm::Log->Error("Access token information is cannot obtained.", GetLastError());
+            return nullptr;
+        }
+
+        const auto procInfo = Impl::GetProcessInfo<CharacterOf<decltype(args)>>();
+        procInfo.second.lpDesktop = TEXT("winsta0\\default");
+        res = CreateProcessAsUser(hToken, const_cast<LPWSTR>(app.wstring().data()), (!commandLine.empty()) ? commandLine.data() : NULL, NULL, NULL, FALSE,
+                                  creationFlags, lpEnvironment, NULL, procInfo.second, procInfo.first.get());
+
+        DestroyEnvironmentBlock(lpEnvironment);
+        CloseHandle(hToken);
+
+        if (!res)
+        {
+            Wcm::Log->Error("Creating the new process is failed.", GetLastError());
+            return nullptr;
+        }
+
+        return procInfo;
+    }
+
     template <StringLike T>
     std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, bool runAsAdmin)
     {
