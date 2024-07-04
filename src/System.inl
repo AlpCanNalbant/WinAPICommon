@@ -15,7 +15,7 @@ namespace Wcm
         Impl::CastString(appStr, command);
         Impl::CastString(argsStr, commandLine);
 
-        return Impl::CreateNewProcess(appStr, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
+        return Impl::CreateNewProcess((!command.empty()) ? appStr : NULL, (!commandLine.empty()) ? argsStr : NULL, creationFlags);
     }
 
     std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, DWORD sessionId, const StringLike auto &args, bool isInteractive, DWORD creationFlags)
@@ -62,7 +62,7 @@ namespace Wcm
         Impl::CastString(appStr, command);
         Impl::CastString(argsStr, commandLine);
 
-        auto procInfo = Impl::CreateNewProcess(hToken, appStr, (!commandLine.empty()) ? argsStr : NULL, isInteractive ? TEXT("winsta0\\default") : TEXT(""), creationFlags);
+        auto procInfo = Impl::CreateNewProcess(hToken, (!command.empty()) ? appStr : NULL, (!commandLine.empty()) ? argsStr : NULL, isInteractive ? TEXT("winsta0\\default") : TEXT(""), creationFlags);
 
         DestroyEnvironmentBlock(lpEnvironment);
         CloseHandle(hToken);
