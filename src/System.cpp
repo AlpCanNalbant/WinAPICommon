@@ -101,6 +101,34 @@ namespace Wcm
         return sessionId;
     }
 
+    bool TerminateProcessFromHwnd(HWND hWnd)
+    {
+        DWORD procId;
+        if (!GetWindowThreadProcessId(hWnd, &procId))
+        {
+            Wcm::Log->Error(L"Process id cannot obtained.", GetLastError());
+            return false;
+        }
+        HANDLE hProc = NULL;
+        if ((hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId)) == NULL)
+        {
+            Wcm::Log->Error(L"Process handle cannot obtained.", GetLastError());
+            return false;
+        }
+        DWORD exitCode;
+        if (!GetExitCodeProcess(hProc, &exitCode))
+        {
+            Wcm::Log->Error(L"Process exit code cannot obtained.", GetLastError());
+            exitCode = 123;
+        }
+        if (!TerminateProcess(hProc, exitCode))
+        {
+            Wcm::Log->Error(L"Process cannot terminated.", GetLastError());
+            return false;
+        }
+        return true;
+    }
+
     namespace Impl
     {
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(LPCWSTR app, LPWSTR args, DWORD creationFlags)

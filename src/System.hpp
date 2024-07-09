@@ -25,6 +25,7 @@ namespace Wcm
     [[nodiscard]] HWND FindHWND(std::string_view windowTitle);
     [[nodiscard]] HWND FindHWND(std::wstring_view windowTitle);
     [[nodiscard]] DWORD GetCurrentSessionId();
+    bool TerminateProcessFromHwnd(HWND hWnd);
 
     namespace Impl
     {
