@@ -110,7 +110,7 @@ namespace Wcm
             return false;
         }
         HANDLE hProc = NULL;
-        if ((hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId)) == NULL)
+        if ((hProc = OpenProcess(PROCESS_TERMINATE, TRUE, procId)) == NULL)
         {
             Wcm::Log->Error(L"Process handle cannot obtained.", GetLastError());
             return false;
