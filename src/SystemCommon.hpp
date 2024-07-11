@@ -9,6 +9,7 @@ namespace Wcm
     [[nodiscard]] std::wstring GetDesktopName();
     [[nodiscard]] std::wstring GetPCName();
     void BringWindowToTop(HWND hWnd, bool keepTopmost = false);
+    void BringWindowToTop(HWND hWnd, DWORD dwProcessId, bool keepTopmost = false);
     void CloseWindow(HWND hWnd);
 
     enum ProcessCreationFlags : DWORD
