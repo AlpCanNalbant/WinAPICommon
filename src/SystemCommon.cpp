@@ -39,21 +39,6 @@ namespace Wcm
         return {lpBuffer};
     }
 
-    void BringWindowToTop(HWND hWnd, bool keepTopmost = false)
-    {
-        BringWindowToTop(hWnd, GetCurrentProcessId(), keepTopmost);
-    }
-
-    void BringWindowToTop(HWND hWnd, DWORD dwProcessId, bool keepTopmost)
-    {
-        ShowWindow(hWnd, SW_SHOW);
-        SetFocus(hWnd);
-        SetWindowPos(hWnd, (!keepTopmost) ? HWND_TOP : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_SHOWWINDOW);
-        ::BringWindowToTop(hWnd);
-        AllowSetForegroundWindow(dwProcessId);
-        SetForegroundWindow(hWnd);
-    }
-
     void CloseWindow(HWND hWnd)
     {
         SendMessageW(hWnd, WM_CLOSE, 0, 0);
