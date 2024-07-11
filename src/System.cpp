@@ -101,7 +101,7 @@ namespace Wcm
         return sessionId;
     }
 
-    bool BringWindowToTop(HWND hWnd, bool keepTopmost = false)
+    bool BringWindowToTop(HWND hWnd, bool keepTopmost)
     {
         return BringWindowToTop(hWnd, GetCurrentProcessId(), keepTopmost);
     }
