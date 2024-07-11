@@ -5,6 +5,12 @@
 
 namespace Wcm
 {
+    [[nodiscard]] std::wstring GetDate();
+    [[nodiscard]] std::wstring GetDesktopName();
+    [[nodiscard]] std::wstring GetPCName();
+    void BringWindowToTop(HWND hWnd, bool keepTopmost = false);
+    void CloseWindow(HWND hWnd);
+
     enum ProcessCreationFlags : DWORD
     {
         None,
@@ -39,9 +45,4 @@ namespace Wcm
         ProfileServer = 0x40000000,
         CreateIgnoreSystemDefault = 0x80000000
     };
-
-    [[nodiscard]] std::wstring GetDate();
-    [[nodiscard]] std::wstring GetDesktopName();
-    [[nodiscard]] std::wstring GetPCName();
-    void CloseWindow(HWND hWnd);
 }

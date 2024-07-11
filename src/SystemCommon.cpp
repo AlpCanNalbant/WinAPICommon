@@ -39,6 +39,11 @@ namespace Wcm
         return {lpBuffer};
     }
 
+    void BringWindowToTop(HWND hWnd, bool keepTopmost)
+    {
+        SetWindowPos(hWnd, (!keepTopmost) ? HWND_TOP : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_SHOWWINDOW);
+    }
+
     void CloseWindow(HWND hWnd)
     {
         SendMessageW(hWnd, WM_CLOSE, 0, 0);
