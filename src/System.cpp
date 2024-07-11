@@ -101,6 +101,50 @@ namespace Wcm
         return sessionId;
     }
 
+    bool BringWindowToTop(HWND hWnd, bool keepTopmost = false)
+    {
+        return BringWindowToTop(hWnd, GetCurrentProcessId(), keepTopmost);
+    }
+
+    bool BringWindowToTop(HWND hWnd, DWORD dwProcessId, bool keepTopmost)
+    {
+        ShowWindow(hWnd, SW_SHOW);
+        if (!SetFocus(hWnd))
+        {
+            Log->Error(L"Setting keyboard focus to the specified window is failed.", GetLastError());
+        }
+        {
+            DWORD dwFailCount = 2;
+            if (!SetWindowPos(hWnd, (!keepTopmost) ? HWND_TOP : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_SHOWWINDOW))
+            {
+                Log->Error(L"Setting window position is failed.", GetLastError()).Sub(L"IsKeepTopmostEnabled", keepTopmost ? L"True" : L"False");
+                --dwFailCount;
+                if (keepTopmost)
+                {
+                    return false;
+                }
+            }
+            if (!::BringWindowToTop(hWnd))
+            {
+                Log->Error(L"Bringing the window to the top of the Z order is failed.", GetLastError());
+                --dwFailCount;
+                if (dwFailCount < 1)
+                {
+                    return false;
+                }
+            }
+        }
+        if (!AllowSetForegroundWindow(dwProcessId))
+        {
+            Log->Error(L"Enabling the specified process to set the foreground window is failed. This error can be ignored, the process may already be able to set the foreground window.", GetLastError()).Sub("ProcessID", std::to_string(dwProcessId));
+        }
+        if (!SetForegroundWindow(hWnd))
+        {
+            Log->Error(L"Window could not be brought to the foreground.", GetLastError());
+        }
+        return true;
+    }
+
     bool TerminateProcessFromHwnd(HWND hWnd)
     {
         DWORD procId;

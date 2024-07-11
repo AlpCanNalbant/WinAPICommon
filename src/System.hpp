@@ -25,6 +25,8 @@ namespace Wcm
     [[nodiscard]] HWND FindHWND(std::string_view windowTitle);
     [[nodiscard]] HWND FindHWND(std::wstring_view windowTitle);
     [[nodiscard]] DWORD GetCurrentSessionId();
+    bool BringWindowToTop(HWND hWnd, bool keepTopmost = false);
+    bool BringWindowToTop(HWND hWnd, DWORD dwProcessId, bool keepTopmost = false);
     bool TerminateProcessFromHwnd(HWND hWnd);
 
     namespace Impl
