@@ -17,7 +17,7 @@ namespace Wcm
             [[nodiscard]] size_t operator()(const std::filesystem::path &path) const noexcept;
             template <Character T>
             [[nodiscard]] constexpr size_t operator()(const T *str) const noexcept
-                requires (requires { { std::strlen(str) } -> std::same_as<size_t>; } || requires { { std::wcslen(str) } -> std::same_as<size_t>; });
+                requires(requires { { std::strlen(str) } -> std::same_as<size_t>; } || requires { { std::wcslen(str) } -> std::same_as<size_t>; });
             template <Character T>
             [[nodiscard]] constexpr size_t operator()(const T *const str) const noexcept;
             template <Character T>
@@ -32,7 +32,7 @@ namespace Wcm
     inline constexpr Impl::GetStringLengthT GetStringLength{};
 
     template <CharacterPointer T>
-    [[nodiscard]] constexpr DWORD GetMultiStringLength(ToConstPointerConst<T> buffer, bool countNullTerminators = false) noexcept;
+    [[nodiscard]] constexpr DWORD GetMultiStringLength(const T *const buffer, bool countNullTerminators = false) noexcept;
 }
 
 #include "StringCommon.inl"
