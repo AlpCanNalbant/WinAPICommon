@@ -2,6 +2,49 @@
 
 namespace Wcm
 {
+    template <Character T>
+    bool EnablePrivilegeValue(const T *const lpszPrivilege, bool bEnablePrivilege)
+    {
+        HANDLE hToken;
+        LUID luid;
+        TOKEN_PRIVILEGES tp;
+        bool isSuccess = true;
+
+        if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
+        {
+            Log->Error("OpenProcessToken error.", GetLastError());
+            isSuccess = false;
+        }
+
+        if (!LookupPrivilegeValue(NULL, lpszPrivilege, &luid)) // SE_DEBUG_NAME
+        {
+            Log->Error("LookupPrivilegeValue error.", GetLastError());
+            isSuccess = false;
+        }
+
+        tp.PrivilegeCount = 1;
+        tp.Privileges[0].Luid = luid;
+        tp.Privileges[0].Attributes = bEnablePrivilege ? SE_PRIVILEGE_ENABLED : 0;
+
+        if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
+        {
+            Log->Error("AdjustTokenPrivileges error.", GetLastError());
+            isSuccess = false;
+        }
+
+        if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
+        {
+            Log->Error("The token does not have the specified privilege.", ERROR_NOT_ALL_ASSIGNED);
+            isSuccess = false;
+        }
+        if (hToken)
+        {
+            CloseHandle(hToken);
+        }
+
+        return isSuccess;
+    }
+
     std::shared_ptr<PROCESS_INFORMATION> Execute(const StringLike auto &app, const StringLike auto &args, DWORD creationFlags)
         requires((WideCharacter<CharacterOf<decltype(app)>> && WideCharacter<CharacterOf<decltype(args)>>) ||
                  (ByteCharacter<CharacterOf<decltype(app)>> && ByteCharacter<CharacterOf<decltype(args)>>))
