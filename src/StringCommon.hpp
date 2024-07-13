@@ -31,7 +31,7 @@ namespace Wcm
 
     inline constexpr Impl::GetStringLengthT GetStringLength{};
 
-    template <CharacterPointer T>
+    template <Character T>
     [[nodiscard]] constexpr DWORD GetMultiStringLength(const T *const buffer, bool countNullTerminators = false) noexcept;
 }
 

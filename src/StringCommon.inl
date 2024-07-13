@@ -2,7 +2,7 @@
 
 namespace Wcm
 {
-    template <CharacterPointer T>
+    template <Character T>
     constexpr DWORD GetMultiStringLength(const T *const buffer, bool countNullTerminators) noexcept
     {
         DWORD len = countNullTerminators;
