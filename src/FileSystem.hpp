@@ -42,6 +42,7 @@ namespace Wcm
     [[nodiscard]] bool IsFileNewer(const StringLike auto &srcFile, const StringLike auto &destFile);
     bool UpdateFileContent(const StringLike auto &srcFile, const StringLike auto &destFile);
     bool UpdateFileContent(const StringLike auto &srcFile, const StringLike auto &destFile, bool &isError);
+    bool WriteToFile(const StringLike auto &text, const std::filesystem::path &outputFile, const bool append = false);
     bool SearchTextLineByLine(const std::filesystem::path &file, const StringLike auto &searchText, CharacterString auto &foundLine)
         requires std::same_as<CharacterOf<decltype(searchText)>, CharacterOf<decltype(foundLine)>>;
     template <StringLike T>

@@ -146,6 +146,23 @@ namespace Wcm
         return true;
     }
 
+    bool WriteToFile(const StringLike auto &text, const std::filesystem::path &outputFile, const bool append)
+    {
+        std::fstream fs{outputFile, std::ios::out | (append ? std::ios::app : std::ios::trunc)};
+        if (!fs.is_open())
+        {
+            Wcm::Log->Error("Output file is could not be created.").Sub("OutputFile", outputFile);
+            return false;
+        }
+        fs << text;
+        if (fs.close(); fs.bad())
+        {
+            Wcm::Log->Error("Error occurred while writing text resource to output file.").Sub("OutputFile", outputFile);
+            return false;
+        }
+        return true;
+    }
+
     bool SearchTextLineByLine(const std::filesystem::path &file, const StringLike auto &searchText, CharacterString auto &foundLine)
         requires std::same_as<CharacterOf<decltype(searchText)>, CharacterOf<decltype(foundLine)>>
     {
