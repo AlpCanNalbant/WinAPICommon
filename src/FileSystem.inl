@@ -148,7 +148,7 @@ namespace Wcm
 
     bool WriteToFile(const StringLike auto &text, const std::filesystem::path &outputFile, const bool append)
     {
-        std::basic_fstream<CharacterOf<StringLike>> fs{outputFile, std::ios::out | (append ? std::ios::app : std::ios::trunc)};
+        std::basic_fstream<CharacterOf<decltype(text)>> fs{outputFile, std::ios::out | (append ? std::ios::app : std::ios::trunc)};
         if (!fs.is_open())
         {
             Wcm::Log->Error("Output file is could not be created.", GetLastError()).Sub("OutputFile", outputFile);
