@@ -271,6 +271,7 @@ namespace Wcm
             Log->Error("'Shell_NotifyIcon()' function is failed while displaying a balloon notification.", GetLastError()).Sub("NotifyAction", "Modify");
             return false;
         }
+        return true;
     }
 
     namespace Impl
