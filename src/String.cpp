@@ -8,7 +8,7 @@ namespace Wcm
     StringCopyResult StringCopy(LPTSTR dest, LPCTSTR src)
     {
         HRESULT hRes;
-        if (FAILED(hRes = StringCchCopy(dest, sizeof(dest), src)))
+        if (FAILED(hRes = StringCchCopy(dest, GetStringLength(src) + 1, src)))
         {
             switch (hRes)
             {
