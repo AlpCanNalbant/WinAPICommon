@@ -1,9 +1,13 @@
 // Copyright (c) Alp Can Nalbant. Licensed under the MIT License.
 
+#include <strsafe.h>
 #include "WinAPICommon.hpp"
 
 BOOL CALLBACK EnumWindowCallback(HWND, LPARAM);
-HWND foundhWnd = NULL;
+LRESULT CALLBACK CBTCallback(UINT, WPARAM, LPARAM);
+HHOOK hCBTHook = nullptr;
+HWND foundhWnd = nullptr;
+HICON hMsgBoxWindIco = nullptr;
 wchar_t const *windowTitleToFind = nullptr;
 
 namespace Wcm
@@ -43,7 +47,7 @@ namespace Wcm
         DWORD dwSessions = 0;
         if (!WTSEnumerateSessions(WTS_CURRENT_SERVER, 0, 1, &pSessionInfo, &dwSessions))
         {
-            Wcm::Log->Error("Enumerating sessions failed.", GetLastError());
+            Log->Error("Enumerating sessions failed.", GetLastError());
             return 0;
         }
         DWORD sessionId = 0;
@@ -108,27 +112,165 @@ namespace Wcm
         DWORD procId;
         if (!GetWindowThreadProcessId(hWnd, &procId))
         {
-            Wcm::Log->Error(L"Process id cannot obtained.", GetLastError());
+            Log->Error(L"Process id cannot obtained.", GetLastError());
             return false;
         }
         HANDLE hProc = NULL;
         if ((hProc = OpenProcess(PROCESS_TERMINATE, TRUE, procId)) == NULL)
         {
-            Wcm::Log->Error(L"Process handle cannot obtained.", GetLastError());
+            Log->Error(L"Process handle cannot obtained.", GetLastError());
             return false;
         }
         DWORD exitCode;
         if (!GetExitCodeProcess(hProc, &exitCode))
         {
-            Wcm::Log->Error(L"Process exit code cannot obtained.", GetLastError());
+            Log->Error(L"Process exit code cannot obtained.", GetLastError());
             exitCode = 123;
         }
         if (!TerminateProcess(hProc, exitCode))
         {
-            Wcm::Log->Error(L"Process cannot terminated.", GetLastError());
+            Log->Error(L"Process cannot terminated.", GetLastError());
             return false;
         }
         return true;
+    }
+
+    int MsgBox(LPCTSTR text, LPCTSTR title, const DWORD styleFlags, HICON windowIcon, HINSTANCE hIcoResModule, LPCTSTR titleIconRes, const DWORD langID)
+    {
+        MSGBOXPARAMS mbp = {0};
+        mbp.cbSize = sizeof(mbp);
+        mbp.hwndOwner = nullptr;
+        mbp.hInstance = hIcoResModule;
+        mbp.lpszText = text;
+        mbp.lpszCaption = title;
+        mbp.dwStyle = MB_USERICON | MB_SETFOREGROUND | styleFlags;
+        mbp.dwLanguageId = langID;
+
+        if (titleIconRes)
+        {
+            if (!mbp.hInstance)
+            {
+                Log->Error("Handle to the module that contains the title icon resource is null. Title icon will not be able to load.");
+            }
+            mbp.lpszIcon = titleIconRes;
+        }
+
+        if (windowIcon)
+        {
+            hMsgBoxWindIco = windowIcon;
+
+            hCBTHook = SetWindowsHookEx(WH_CBT, (HOOKPROC)CBTCallback, 0, GetCurrentThreadId());
+            if (hCBTHook)
+            {
+                return MessageBoxIndirect(&mbp);
+            }
+
+            Log->Error("Procedure could not added into a hook chain.");
+        }
+
+        return MessageBox(nullptr, text, title, styleFlags);
+    }
+
+    std::optional<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd, UINT uIconID, HICON hIcon, HICON hBalloonIcon)
+    {
+        NOTIFYICONDATA nid = {0};
+        nid.cbSize = sizeof(nid);
+        nid.uID = uIconID;
+        nid.hWnd = hWnd;
+        nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_STATE;
+        nid.dwStateMask = NIS_HIDDEN;
+        nid.hIcon = hIcon;
+        nid.hBalloonIcon = hBalloonIcon;
+
+        if (nid.hIcon == nullptr)
+        {
+            Log->Error("The tray icon could not be created because the received address of the icon handle is null.");
+            return std::nullopt;
+        }
+        nid.uVersion = NOTIFYICON_VERSION_4;
+        if (!Shell_NotifyIcon(NIM_ADD, &nid))
+        {
+            Log->Error("'Shell_NotifyIcon()' function is failed while creating tray icon.", GetLastError()).Sub("NotifyAction", "Add");
+            return std::nullopt;
+        }
+        if (!Shell_NotifyIcon(NIM_SETVERSION, &nid))
+        {
+            Log->Error("'Shell_NotifyIcon()' function is failed while creating tray icon.", GetLastError()).Sub("NotifyAction", "SetVersion");
+            return std::nullopt;
+        }
+
+        return std::make_optional<NOTIFYICONDATA>(nid);
+    }
+
+    bool DeleteTrayIcon(NOTIFYICONDATA &trayIconNID)
+    {
+        if (!Shell_NotifyIcon(NIM_DELETE, &trayIconNID))
+        {
+            Log->Error("'Shell_NotifyIcon()' function is failed while deleting the tray icon from the status area.", GetLastError()).Sub("NotifyAction", "Delete");
+            return false;
+        }
+        return true;
+    }
+
+    bool ShowTrayIcon(NOTIFYICONDATA &trayIconNID)
+    {
+        trayIconNID.dwState = 0;
+        if (!Shell_NotifyIcon(NIM_MODIFY, &trayIconNID))
+        {
+            Log->Error("'Shell_NotifyIcon()' function is failed while hiding tray icon.", GetLastError()).Sub("NotifyAction", "Modify");
+            return false;
+        }
+        return true;
+    }
+
+    bool HideTrayIcon(NOTIFYICONDATA &trayIconNID)
+    {
+        trayIconNID.dwState = NIS_HIDDEN;
+        if (!Shell_NotifyIcon(NIM_MODIFY, &trayIconNID))
+        {
+            Log->Error("'Shell_NotifyIcon()' function is failed while hiding tray icon.", GetLastError()).Sub("NotifyAction", "Modify");
+            return false;
+        }
+        return true;
+    }
+
+    bool Notify(NOTIFYICONDATA &trayIconNID, const LPCTSTR text, const LPCTSTR title, bool makeSound)
+    {
+        {
+            int len;
+            if (((len = GetStringLength(text)) > NotifyTextMaxLength))
+            {
+                Log->Error("Lenght of notification text must be less than or equal to " + std::to_string(NotifyTextMaxLength) + '.', GetLastError()).Sub("Length", std::to_string(len));
+                return false;
+            }
+            if (((len = GetStringLength(title)) > NotifyTitleMaxLength))
+            {
+                Log->Error("Lenght of notification title must be less than or equal to " + std::to_string(NotifyTitleMaxLength) + '.', GetLastError()).Sub("Length", std::to_string(len));
+                return false;
+            }
+        }
+
+        if (StringCopy(trayIconNID.szInfoTitle, title) != StringCopyResult::Succeeded)
+        {
+            return false;
+        }
+        if (StringCopy(trayIconNID.szInfo, text) != StringCopyResult::Succeeded)
+        {
+            return false;
+        }
+
+        trayIconNID.uFlags |= NIF_INFO;
+        trayIconNID.dwInfoFlags = NIIF_USER | NIIF_LARGE_ICON;
+        if (makeSound)
+        {
+            makeSound |= NIIF_NOSOUND;
+        }
+
+        if (!Shell_NotifyIcon(NIM_MODIFY, &trayIconNID))
+        {
+            Log->Error("'Shell_NotifyIcon()' function is failed while displaying a balloon notification.", GetLastError()).Sub("NotifyAction", "Modify");
+            return false;
+        }
     }
 
     namespace Impl
@@ -189,7 +331,7 @@ BOOL CALLBACK EnumWindowCallback(HWND hWnd, [[maybe_unused]] LPARAM lparam)
         GetWindowTextW(hWnd, buffer, length + 1);
         std::wstring windowTitle{buffer};
         // Do not bloat the log messages with this info.
-        // Wcm::Log->Info(std::wstring{L"Name of the current window handle is "} + buffer + L'.');
+        // Log->Info(std::wstring{L"Name of the current window handle is "} + buffer + L'.');
         if (windowTitle.find(windowTitleToFind) != std::wstring::npos)
         {
             foundhWnd = hWnd;
@@ -199,4 +341,18 @@ BOOL CALLBACK EnumWindowCallback(HWND hWnd, [[maybe_unused]] LPARAM lparam)
     }
 
     return TRUE;
+}
+
+LRESULT CALLBACK CBTCallback(UINT nCode, WPARAM wParam, LPARAM lParam)
+{
+    if (nCode == HCBT_ACTIVATE)
+    {
+        SendMessage((HWND)wParam, WM_SETICON, ICON_SMALL, (LPARAM)hMsgBoxWindIco);
+        UnhookWindowsHookEx(hCBTHook);
+    }
+    else
+    {
+        CallNextHookEx(hCBTHook, nCode, wParam, lParam);
+    }
+    return 0;
 }
