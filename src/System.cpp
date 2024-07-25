@@ -171,7 +171,7 @@ namespace Wcm
         return MessageBox(nullptr, text, title, styleFlags);
     }
 
-    std::optional<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd, UINT uIconID, HICON hIcon, HICON hBalloonIcon)
+    std::optional<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd, const UINT uIconID, HICON hIcon, HICON hBalloonIcon)
     {
         NOTIFYICONDATA nid = {0};
         nid.cbSize = sizeof(nid);
@@ -234,7 +234,7 @@ namespace Wcm
         return true;
     }
 
-    bool Notify(NOTIFYICONDATA &trayIconNID, const LPCTSTR text, const LPCTSTR title, bool makeSound)
+    bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text, LPCTSTR title, const bool makeSound)
     {
         {
             int len;
@@ -263,7 +263,7 @@ namespace Wcm
         trayIconNID.dwInfoFlags = NIIF_USER | NIIF_LARGE_ICON;
         if (makeSound)
         {
-            makeSound |= NIIF_NOSOUND;
+            trayIconNID.dwInfoFlags |= NIIF_NOSOUND;
         }
 
         if (!Shell_NotifyIcon(NIM_MODIFY, &trayIconNID))
