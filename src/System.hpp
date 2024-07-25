@@ -32,12 +32,14 @@ namespace Wcm
     bool BringWindowToTop(HWND hWnd, bool keepTopmost = false);
     bool BringWindowToTop(HWND hWnd, DWORD dwProcessId, bool keepTopmost = false);
     bool TerminateProcessFromHwnd(HWND hWnd);
-    int MsgBox(LPCTSTR text = nullptr, LPCTSTR title = nullptr, const DWORD styleFlags = 0, HICON windowIcon = nullptr, HINSTANCE hIcoResModule = nullptr, LPCTSTR titleIconRes = nullptr, const DWORD langID = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
-    std::optional<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd = nullptr, const UINT uIconID = 0, HICON hIcon = nullptr, HICON hBalloonIcon = nullptr);
+    int MsgBox(LPCTSTR text = nullptr, LPCTSTR title = nullptr, const DWORD styleFlags = 0, HICON hWndIcon = nullptr, HINSTANCE hIcoResModule = nullptr, LPCTSTR titleIconRes = nullptr, const DWORD langID = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
+    std::shared_ptr<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd = nullptr, const UINT iconID = 0, HICON hIcon = nullptr);
+    bool CreateTrayIcon(NOTIFYICONDATA &outNID, HWND hWnd = nullptr, const UINT iconID = 0, HICON hIcon = nullptr);
     bool DeleteTrayIcon(NOTIFYICONDATA &trayIconNID);
     bool ShowTrayIcon(NOTIFYICONDATA &trayIconNID);
     bool HideTrayIcon(NOTIFYICONDATA &trayIconNID);
     bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text = nullptr, LPCTSTR title = nullptr, const bool makeSound = true);
+    bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text = nullptr, LPCTSTR title = nullptr, HICON hBalloonIcon = nullptr, const bool makeSound = true);
 
     namespace Impl
     {

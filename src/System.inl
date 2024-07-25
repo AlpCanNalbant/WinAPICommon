@@ -2,6 +2,11 @@
 
 namespace Wcm
 {
+    inline bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text, LPCTSTR title, const bool makeSound)
+    {
+        return Notify(trayIconNID, text, title, nullptr, makeSound);
+    }
+
     template <Character T>
     bool EnablePrivilegeValue(const T *const lpszPrivilege, bool bEnablePrivilege)
     {

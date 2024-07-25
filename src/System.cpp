@@ -7,7 +7,7 @@ BOOL CALLBACK EnumWindowCallback(HWND, LPARAM);
 LRESULT CALLBACK CBTCallback(UINT, WPARAM, LPARAM);
 HHOOK hCBTHook = nullptr;
 HWND foundhWnd = nullptr;
-HICON hMsgBoxWindIco = nullptr;
+HICON hMsgBoxWndIco = nullptr;
 wchar_t const *windowTitleToFind = nullptr;
 
 namespace Wcm
@@ -135,12 +135,11 @@ namespace Wcm
         return true;
     }
 
-    int MsgBox(LPCTSTR text, LPCTSTR title, const DWORD styleFlags, HICON windowIcon, HINSTANCE hIcoResModule, LPCTSTR titleIconRes, const DWORD langID)
+    int MsgBox(LPCTSTR text, LPCTSTR title, const DWORD styleFlags, HICON hWndIcon, HINSTANCE hIcoResModule, LPCTSTR titleIconRes, const DWORD langID)
     {
         MSGBOXPARAMS mbp = {0};
         mbp.cbSize = sizeof(mbp);
         mbp.hwndOwner = nullptr;
-        mbp.hInstance = hIcoResModule;
         mbp.lpszText = text;
         mbp.lpszCaption = title;
         mbp.dwStyle = MB_USERICON | MB_SETFOREGROUND | styleFlags;
@@ -148,17 +147,17 @@ namespace Wcm
 
         if (titleIconRes)
         {
-            if (!mbp.hInstance)
+            if (!hIcoResModule)
             {
                 Log->Error("Handle to the module that contains the title icon resource is null. Title icon will not be able to load.");
             }
+            mbp.hInstance = hIcoResModule;
             mbp.lpszIcon = titleIconRes;
         }
 
-        if (windowIcon)
+        if (hWndIcon)
         {
-            hMsgBoxWindIco = windowIcon;
-
+            hMsgBoxWndIco = hWndIcon;
             hCBTHook = SetWindowsHookEx(WH_CBT, (HOOKPROC)CBTCallback, 0, GetCurrentThreadId());
             if (hCBTHook)
             {
@@ -171,35 +170,42 @@ namespace Wcm
         return MessageBox(nullptr, text, title, styleFlags);
     }
 
-    std::optional<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd, const UINT uIconID, HICON hIcon, HICON hBalloonIcon)
+    std::shared_ptr<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd, const UINT iconID, HICON hIcon)
     {
-        NOTIFYICONDATA nid = {0};
-        nid.cbSize = sizeof(nid);
-        nid.uID = uIconID;
-        nid.hWnd = hWnd;
-        nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_STATE;
-        nid.dwStateMask = NIS_HIDDEN;
-        nid.hIcon = hIcon;
-        nid.hBalloonIcon = hBalloonIcon;
-
-        if (nid.hIcon == nullptr)
+        const auto nid = std::make_shared<NOTIFYICONDATA>();
+        if (!CreateTrayIcon(*nid, hWnd, iconID, hIcon))
         {
-            Log->Error("The tray icon could not be created because the received address of the icon handle is null.");
-            return std::nullopt;
+            return nullptr;
         }
-        nid.uVersion = NOTIFYICON_VERSION_4;
-        if (!Shell_NotifyIcon(NIM_ADD, &nid))
+        return nid;
+    }
+
+    bool CreateTrayIcon(NOTIFYICONDATA &outNID, HWND hWnd, const UINT iconID, HICON hIcon)
+    {
+        outNID.cbSize = sizeof(outNID);
+        outNID.uID = iconID;
+        outNID.hWnd = hWnd;
+        outNID.uFlags = NIF_ICON | NIF_MESSAGE | NIF_STATE;
+        outNID.dwStateMask = NIS_HIDDEN;
+        outNID.hIcon = hIcon;
+        outNID.uVersion = NOTIFYICON_VERSION_4;
+
+        if (outNID.hIcon == nullptr)
+        {
+            Log->Error("The tray icon could not be created due to address of the icon handle is null.");
+            return false;
+        }
+        if (!Shell_NotifyIcon(NIM_ADD, &outNID))
         {
             Log->Error("'Shell_NotifyIcon()' function is failed while creating tray icon.", GetLastError()).Sub("NotifyAction", "Add");
-            return std::nullopt;
+            return false;
         }
-        if (!Shell_NotifyIcon(NIM_SETVERSION, &nid))
+        if (!Shell_NotifyIcon(NIM_SETVERSION, &outNID))
         {
             Log->Error("'Shell_NotifyIcon()' function is failed while creating tray icon.", GetLastError()).Sub("NotifyAction", "SetVersion");
-            return std::nullopt;
+            return false;
         }
-
-        return std::make_optional<NOTIFYICONDATA>(nid);
+        return true;
     }
 
     bool DeleteTrayIcon(NOTIFYICONDATA &trayIconNID)
@@ -234,7 +240,7 @@ namespace Wcm
         return true;
     }
 
-    bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text, LPCTSTR title, const bool makeSound)
+    bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text, LPCTSTR title, HICON hBalloonIcon, const bool makeSound)
     {
         {
             int len;
@@ -261,11 +267,11 @@ namespace Wcm
 
         trayIconNID.uFlags |= NIF_INFO;
         trayIconNID.dwInfoFlags = NIIF_USER | NIIF_LARGE_ICON;
+        trayIconNID.hBalloonIcon = hBalloonIcon;
         if (makeSound)
         {
             trayIconNID.dwInfoFlags |= NIIF_NOSOUND;
         }
-
         if (!Shell_NotifyIcon(NIM_MODIFY, &trayIconNID))
         {
             Log->Error("'Shell_NotifyIcon()' function is failed while displaying a balloon notification.", GetLastError()).Sub("NotifyAction", "Modify");
@@ -348,7 +354,7 @@ LRESULT CALLBACK CBTCallback(UINT nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode == HCBT_ACTIVATE)
     {
-        SendMessage((HWND)wParam, WM_SETICON, ICON_SMALL, (LPARAM)hMsgBoxWindIco);
+        SendMessage((HWND)wParam, WM_SETICON, ICON_SMALL, (LPARAM)hMsgBoxWndIco);
         UnhookWindowsHookEx(hCBTHook);
     }
     else
