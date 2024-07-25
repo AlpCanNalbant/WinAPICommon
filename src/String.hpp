@@ -9,6 +9,7 @@
 #include <cwchar>
 #include <string_view>
 #include <type_traits>
+#include <strsafe.h>
 #include "Ranges.hpp"
 #include "StringCommon.hpp"
 #include "TypeTraits.hpp"
@@ -16,7 +17,9 @@
 namespace Wcm
 {
     template <typename T>
-    struct CharacterOfT { };
+    struct CharacterOfT
+    {
+    };
     template <typename T>
         requires requires { typename std::remove_cvref_t<T>::value_type; }
     struct CharacterOfT<T>
@@ -37,6 +40,13 @@ namespace Wcm
 
     template <typename T>
     using CharacterOf = CharacterOfT<T>::Type;
+
+    enum class StringCopyResult : HRESULT
+    {
+        Succeeded = S_OK,
+        InvalidParameter = STRSAFE_E_INVALID_PARAMETER,
+        InsufficientBuffer = STRSAFE_E_INSUFFICIENT_BUFFER
+    };
 
     namespace Impl
     {
@@ -100,7 +110,10 @@ namespace Wcm
         template <typename T>
         using ToWStringIfResult = ToWStringIfResultT<T>::Type;
 
-        struct IgnoreArrayLengthT { explicit IgnoreArrayLengthT() = default; };
+        struct IgnoreArrayLengthT
+        {
+            explicit IgnoreArrayLengthT() = default;
+        };
         inline constexpr IgnoreArrayLengthT IgnoreArrayLength{};
 
         struct UnorderedContainsT final
@@ -166,6 +179,7 @@ namespace Wcm
     [[nodiscard]] std::vector<std::basic_string<CharacterOf<T>>> ToUnquoteds(const T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
     template <Character T>
     [[nodiscard]] std::shared_ptr<T> ToBuffer(std::basic_string_view<T> str);
+    StringCopyResult StringCopy(LPTSTR dest, LPCTSTR src);
     template <StringLike T>
     [[nodiscard]] auto GetData(T &&t);
     template <StringLike T>
