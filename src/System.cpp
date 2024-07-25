@@ -256,11 +256,11 @@ namespace Wcm
             }
         }
 
-        if (StringCopy(trayIconNID.szInfoTitle, title) != StringCopyResult::Succeeded)
+        if (StringCopy(trayIconNID.szInfoTitle, title) == StringCopyResult::InvalidParameter)
         {
             return false;
         }
-        if (StringCopy(trayIconNID.szInfo, text) != StringCopyResult::Succeeded)
+        if (StringCopy(trayIconNID.szInfo, text) == StringCopyResult::InvalidParameter)
         {
             return false;
         }
