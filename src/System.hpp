@@ -40,6 +40,7 @@ namespace Wcm
     bool HideTrayIcon(NOTIFYICONDATA &trayIconNID);
     bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text = nullptr, LPCTSTR title = nullptr, const bool makeSound = true);
     bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text = nullptr, LPCTSTR title = nullptr, HICON hBalloonIcon = nullptr, const bool makeSound = true);
+    [[nodiscard]] std::vector<std::shared_ptr<WCHAR>> GetCommandLineArgv();
 
     namespace Impl
     {

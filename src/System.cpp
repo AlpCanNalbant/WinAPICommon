@@ -280,6 +280,35 @@ namespace Wcm
         return true;
     }
 
+    std::vector<std::shared_ptr<WCHAR>> GetCommandLineArgv()
+    {
+        int numArgs;
+        auto cmdLines = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+        if (cmdLines == NULL)
+        {
+            Wcm::Log->Error("'CommandLineToArgvW' function is failed.", GetLastError());
+            return {};
+        }
+        const auto deleterObj = [numArgs, cmdLines]([[maybe_unused]] auto p)
+        {
+    		auto myNumArgs = numArgs;
+    		auto myCmdLines = cmdLines;
+            if ((--myNumArgs) == 0)
+            {
+                if (LocalFree(myCmdLines))
+                {
+                    Wcm::Log->Error("String array buffer is could not be freed.", GetLastError());
+                }
+            }
+        };
+        std::vector<std::shared_ptr<WCHAR>> args;
+        for (int i = 0; i < numArgs; ++i)
+        {
+            args.emplace_back(cmdLines[i], deleterObj);
+        }
+        return args;
+    }
+
     namespace Impl
     {
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(LPCWSTR app, LPWSTR args, DWORD creationFlags)
