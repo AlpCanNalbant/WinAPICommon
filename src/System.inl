@@ -2,11 +2,6 @@
 
 namespace Wcm
 {
-    inline bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text, LPCTSTR title, const bool makeSound)
-    {
-        return Notify(trayIconNID, text, title, nullptr, makeSound);
-    }
-
     template <Character T>
     bool EnablePrivilegeValue(const T *const lpszPrivilege, bool bEnablePrivilege)
     {
@@ -73,14 +68,14 @@ namespace Wcm
         HANDLE hToken;
         if (!WTSQueryUserToken(sessionId, &hToken))
         {
-            Wcm::Log->Error("Obtaining the primary access token of the logged-on user specified by the session ID is failed.", GetLastError());
+            Log->Error("Obtaining the primary access token of the logged-on user specified by the session ID is failed.", GetLastError());
             return nullptr;
         }
 
         LPVOID lpEnvironment = NULL;
         if (!CreateEnvironmentBlock(&lpEnvironment, hToken, TRUE))
         {
-            Wcm::Log->Error("Retrieving the environment variables for the specified user is failed.", GetLastError());
+            Log->Error("Retrieving the environment variables for the specified user is failed.", GetLastError());
             CloseHandle(hToken);
             return nullptr;
         }
@@ -97,7 +92,7 @@ namespace Wcm
         }
         else
         {
-            Wcm::Log->Error("Access token information is cannot obtained.", GetLastError());
+            Log->Error("Access token information is cannot obtained.", GetLastError());
             return nullptr;
         }
 
@@ -117,7 +112,7 @@ namespace Wcm
 
         if (!procInfo)
         {
-            Wcm::Log->Error(L"Creating the new process is failed.", GetLastError()).Sub(L"Application", appStr).Sub("Paramaters", argsStr);
+            Log->Error(L"Creating the new process is failed.", GetLastError()).Sub(L"Application", appStr).Sub("Paramaters", argsStr);
             return nullptr;
         }
 
@@ -170,6 +165,21 @@ namespace Wcm
         return RunCommand(command, NULL, runAsAdmin);
     }
 
+    inline bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text, LPCTSTR title, const bool makeSound)
+    {
+        return Notify(trayIconNID, text, title, nullptr, makeSound);
+    }
+
+    inline std::vector<std::wstring> GetCommandLineArgvW()
+    {
+        return Impl::GetCommandLineArgv<WCHAR>();
+    }
+
+    inline std::vector<std::string> GetCommandLineArgvA()
+    {
+        return Impl::GetCommandLineArgv<CHAR>();
+    }
+
     namespace Impl
     {
         template <Character T>
@@ -217,6 +227,35 @@ namespace Wcm
                     destStr = reinterpret_cast<LPSTR>(sourceStrView.data());
                 }
             }
+        }
+
+        template <Wcm::Character T>
+        std::vector<std::basic_string<T>> GetCommandLineArgv()
+        {
+            int numArgs;
+            auto cmdLines = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+            if (cmdLines == NULL)
+            {
+                Wcm::Log->Error("Failed to get array of command line arguments.", GetLastError());
+                return {};
+            }
+            std::vector<std::basic_string<T>> args;
+            for (int i = 0; i < numArgs; ++i)
+            {
+                if constexpr (Wcm::WideCharacter<T>)
+                {
+                    args.emplace_back(cmdLines[i]);
+                }
+                else
+                {
+                    args.emplace_back(Wcm::ToString(cmdLines[i]));
+                }
+            }
+            if (LocalFree(cmdLines))
+            {
+                Wcm::Log->Error("String array buffer is could not be freed.", GetLastError());
+            }
+            return args;
         }
     }
 }

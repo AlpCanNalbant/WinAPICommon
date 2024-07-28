@@ -40,7 +40,8 @@ namespace Wcm
     bool HideTrayIcon(NOTIFYICONDATA &trayIconNID);
     bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text = nullptr, LPCTSTR title = nullptr, const bool makeSound = true);
     bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text = nullptr, LPCTSTR title = nullptr, HICON hBalloonIcon = nullptr, const bool makeSound = true);
-    [[nodiscard]] std::vector<std::shared_ptr<WCHAR>> GetCommandLineArgv();
+    [[nodiscard]] std::vector<std::wstring> GetCommandLineArgvW();
+    [[nodiscard]] std::vector<std::string> GetCommandLineArgvA();
 
     namespace Impl
     {
@@ -55,6 +56,9 @@ namespace Wcm
 
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(HANDLE hToken, LPCWSTR app, LPWSTR args, std::wstring_view desktop, DWORD creationFlags);
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(HANDLE hToken, LPCSTR app, LPSTR args, std::string_view desktop, DWORD creationFlags);
+
+        template <Wcm::Character T>
+        [[nodiscard]] std::vector<std::basic_string<T>> GetCommandLineArgv();
     }
 }
 
