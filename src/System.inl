@@ -165,6 +165,11 @@ namespace Wcm
         return RunCommand(command, NULL, runAsAdmin);
     }
 
+    inline bool IsCurrentProcessElevated()
+    {
+        return GetCurrentProcessElevationInfo(0);
+    }
+
     inline bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text, LPCTSTR title, const bool makeSound)
     {
         return Notify(trayIconNID, text, title, nullptr, makeSound);

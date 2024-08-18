@@ -63,6 +63,18 @@ namespace Wcm
         return sessionId;
     }
 
+    bool IsCurrentProcessElevated(bool &error)
+    {
+        const int res = GetCurrentProcessElevationInfo(-1);
+        if (res == -1)
+        {
+            error = true;
+            return false;
+        }
+        error = false;
+        return res;
+    }
+
     bool BringWindowToTop(HWND hWnd, bool keepTopmost)
     {
         return BringWindowToTop(hWnd, GetCurrentProcessId(), keepTopmost);
@@ -320,6 +332,36 @@ namespace Wcm
             }
             Wcm::Log->Error("Creation of process is failed.", GetLastError()).Sub("Process", app);
             return nullptr;
+        }
+
+        int GetCurrentProcessElevationInfo(const int errCode)
+        {
+            int res;
+            HANDLE hToken = nullptr;
+            if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+            {
+                TOKEN_ELEVATION elevation;
+                DWORD cbSize = sizeof(TOKEN_ELEVATION);
+                if (GetTokenInformation(hToken, TokenElevation, &elevation, sizeof(elevation), &cbSize))
+                {
+                    res = elevation.TokenIsElevated;
+                }
+                else
+                {
+                    Wcm::Log->Error("Could not be retrieved whether the token is elevated.", GetLastError());
+                    res = errCode;
+                }
+            }
+            else
+            {
+                Wcm::Log->Error("Unable to open the access token associated with the current process.", GetLastError());
+                res = errCode;
+            }
+            if (hToken)
+            {
+                CloseHandle(hToken);
+            }
+            return res;
         }
     }
 }

@@ -29,6 +29,8 @@ namespace Wcm
     [[nodiscard]] HWND FindHWND(std::string_view windowTitle);
     [[nodiscard]] HWND FindHWND(std::wstring_view windowTitle);
     [[nodiscard]] DWORD GetCurrentSessionId();
+    [[nodiscard]] bool IsCurrentProcessElevated();
+    [[nodiscard]] bool IsCurrentProcessElevated(bool &error);
     bool BringWindowToTop(HWND hWnd, bool keepTopmost = false);
     bool BringWindowToTop(HWND hWnd, DWORD dwProcessId, bool keepTopmost = false);
     bool TerminateProcessFromHwnd(HWND hWnd);
@@ -56,6 +58,8 @@ namespace Wcm
 
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(HANDLE hToken, LPCWSTR app, LPWSTR args, std::wstring_view desktop, DWORD creationFlags);
         std::shared_ptr<PROCESS_INFORMATION> CreateNewProcess(HANDLE hToken, LPCSTR app, LPSTR args, std::string_view desktop, DWORD creationFlags);
+
+        [[nodiscard]] int GetCurrentProcessElevationInfo(const int errCode);
 
         template <Wcm::Character T>
         [[nodiscard]] std::vector<std::basic_string<T>> GetCommandLineArgv();
