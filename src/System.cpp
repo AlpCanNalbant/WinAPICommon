@@ -65,7 +65,7 @@ namespace Wcm
 
     bool IsCurrentProcessElevated(bool &error)
     {
-        const int res = GetCurrentProcessElevationInfo(-1);
+        const int res = Impl::GetCurrentProcessElevationInfo(-1);
         if (res == -1)
         {
             error = true;

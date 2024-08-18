@@ -167,7 +167,7 @@ namespace Wcm
 
     inline bool IsCurrentProcessElevated()
     {
-        return GetCurrentProcessElevationInfo(0);
+        return Impl::GetCurrentProcessElevationInfo(0);
     }
 
     inline bool Notify(NOTIFYICONDATA &trayIconNID, LPCTSTR text, LPCTSTR title, const bool makeSound)
