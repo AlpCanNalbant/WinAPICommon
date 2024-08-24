@@ -41,6 +41,62 @@ namespace Wcm
         return foundhWnd;
     }
 
+    std::optional<std::pair<int, UINT>> FindMenuItem(HMENU hMenu, LPCTSTR text)
+    {
+        MENUITEMINFO item;
+        const int itemCount = GetMenuItemCount(hMenu);
+        if (itemCount == -1)
+        {
+            Wcm::Log->Error("Menu item count not found.", GetLastError());
+            return std::nullopt;
+        }
+
+        for (int i = 0; i < itemCount; ++i)
+        {
+            std::memset(&item, 0, sizeof(item));
+            item.cbSize = sizeof(item);
+            item.fMask = MIIM_STRING | MIIM_ID | MIIM_SUBMENU;
+            if (!GetMenuItemInfo(hMenu, i, TRUE, &item))
+            {
+                Wcm::Log->Error("Could not get menu item information.", GetLastError()).Sub("Position", std::to_string(i));
+                continue;
+            }
+
+            if (item.cch > 0)
+            {
+                item.cch++;
+                LPTSTR buf = static_cast<LPTSTR>(std::malloc(item.cch * sizeof(TCHAR)));
+                if (buf != nullptr)
+                {
+                    if (!GetMenuString(hMenu, i, buf, item.cch, MF_BYPOSITION))
+                    {
+                        std::free(buf);
+                        Wcm::Log->Error("Could not get menu item string data.", GetLastError()).Sub("Position", std::to_string(i)).Sub("ID", std::to_string(item.wID));
+                        continue;
+                    }
+
+                    if (lstrcmpi(text, buf) == 0)
+                    {
+                        std::free(buf);
+                        return std::make_optional<std::pair<int, UINT>>(i, item.wID);
+                    }
+
+                    std::free(buf);
+                }
+
+                if (item.hSubMenu != nullptr)
+                {
+                    if (const auto res = FindMenuItem(item.hSubMenu, text))
+                    {
+                        return res;
+                    }
+                }
+            }
+        }
+
+        return std::make_optional<std::pair<int, UINT>>(-1, 0);
+    }
+
     DWORD GetCurrentSessionId()
     {
         WTS_SESSION_INFO *pSessionInfo;

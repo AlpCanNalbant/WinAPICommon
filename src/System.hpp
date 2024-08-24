@@ -28,6 +28,7 @@ namespace Wcm
     std::shared_ptr<void> RunCommand(const T &command, bool runAsAdmin = false);
     [[nodiscard]] HWND FindHWND(std::string_view windowTitle);
     [[nodiscard]] HWND FindHWND(std::wstring_view windowTitle);
+    [[nodiscard]] std::optional<std::pair<int, UINT>> FindMenuItem(HMENU hMenu, LPCTSTR text);
     [[nodiscard]] DWORD GetCurrentSessionId();
     [[nodiscard]] bool IsCurrentProcessElevated();
     [[nodiscard]] bool IsCurrentProcessElevated(bool &error);
