@@ -10,8 +10,32 @@
 
 namespace Wcm
 {
+    namespace Impl
+    {
+        using ButtonT = std::tuple<HWND, std::array<bool, 3>, std::array<COLORREF, 4>>;
+
+        struct FindHWNDT final
+        {
+            inline static HWND foundhWnd{nullptr};
+            inline static wchar_t const *windowTitleToFind{nullptr};
+
+            [[nodiscard]] HWND operator()(std::wstring_view windowTitle) const noexcept;
+            [[nodiscard]] HWND operator()(std::string_view windowTitle) const;
+        };
+
+        struct MsgBoxT final
+        {
+            inline static std::vector<std::tuple<std::shared_ptr<TCHAR>, HWND, HHOOK, bool, HICON, WNDPROC, std::vector<ButtonT>>> instances;
+
+            int operator()(LPCTSTR text = nullptr, LPCTSTR title = nullptr, DWORD styleFlags = static_cast<DWORD>(MessageBoxStyle::Ok), HICON hWndIcon = nullptr, HINSTANCE hIcoResModule = nullptr, LPCTSTR titleIconRes = nullptr, const DWORD langID = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US)) const;
+        };
+    }
+
     inline constexpr int NotifyTitleMaxLength = 64;
     inline constexpr int NotifyTextMaxLength = 256;
+
+    inline constexpr Impl::FindHWNDT FindHWND{};
+    inline constexpr Impl::MsgBoxT MsgBox{};
 
     template <Character T>
     bool EnablePrivilegeValue(const T *const lpszPrivilege, bool bEnablePrivilege);
@@ -26,8 +50,6 @@ namespace Wcm
     std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, bool runAsAdmin = false);
     template <StringLike T>
     std::shared_ptr<void> RunCommand(const T &command, bool runAsAdmin = false);
-    [[nodiscard]] HWND FindHWND(std::string_view windowTitle);
-    [[nodiscard]] HWND FindHWND(std::wstring_view windowTitle);
     [[nodiscard]] std::optional<std::pair<int, UINT>> FindMenuItem(HMENU hMenu, LPCTSTR text);
     [[nodiscard]] DWORD GetCurrentSessionId();
     [[nodiscard]] bool IsCurrentProcessElevated();
@@ -35,7 +57,6 @@ namespace Wcm
     bool BringWindowToTop(HWND hWnd, bool keepTopmost = false);
     bool BringWindowToTop(HWND hWnd, DWORD dwProcessId, bool keepTopmost = false);
     bool TerminateProcessFromHwnd(HWND hWnd);
-    int MsgBox(LPCTSTR text = nullptr, LPCTSTR title = nullptr, const DWORD styleFlags = 0, HICON hWndIcon = nullptr, HINSTANCE hIcoResModule = nullptr, LPCTSTR titleIconRes = nullptr, const DWORD langID = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
     std::shared_ptr<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd = nullptr, const UINT iconID = 0, HICON hIcon = nullptr);
     bool CreateTrayIcon(NOTIFYICONDATA &outNID, HWND hWnd = nullptr, const UINT iconID = 0, HICON hIcon = nullptr);
     bool DeleteTrayIcon(NOTIFYICONDATA &trayIconNID);
