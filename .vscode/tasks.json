@@ -60,7 +60,18 @@
             },
             "type": "shell",
             "command": "cmake",
-            "args": ["-G", "MinGW Makefiles", "-B", "${workspaceFolder}\\Build\\WinAPICommon\\Debug", "-S", "${workspaceFolder}", "-D", "CMAKE_BUILD_TYPE=Debug" ],
+            "args": [
+                "-G",
+                "MinGW Makefiles",
+                "-B",
+                "${workspaceFolder}\\Build\\WinAPICommon\\Debug",
+                "-S",
+                "${workspaceFolder}",
+                "-D",
+                "CMAKE_BUILD_TYPE=Debug",
+                "-D",
+                "CMAKE_CXX_COMPILER=x86_64-w64-mingw32-c++.exe"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -79,7 +90,18 @@
             },
             "type": "shell",
             "command": "cmake",
-            "args": ["-G", "MinGW Makefiles", "-B", "${workspaceFolder}\\Build\\WinAPICommon\\Release", "-S", "${workspaceFolder}", "-D", "CMAKE_BUILD_TYPE=Release" ],
+            "args": [
+                "-G",
+                "MinGW Makefiles",
+                "-B",
+                "${workspaceFolder}\\Build\\WinAPICommon\\Release",
+                "-S",
+                "${workspaceFolder}",
+                "-D",
+                "CMAKE_BUILD_TYPE=Release",
+                "-D",
+                "CMAKE_CXX_COMPILER=x86_64-w64-mingw32-c++.exe"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -140,302 +162,6 @@
         },
         //
         // END: Building Source Files of Windows API Common Library Project
-        //
-        //
-        // BEGIN: Building Source Files of Key Sender Sample Project
-        //
-        {
-            "label": "C/C++ GCC: Debug Build KeySender Sample",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": ".\\Builder.bat",
-            "args": [
-                "1",
-                "D",
-                "N"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                // "isDefault": true
-            },
-            "dependsOn": [
-                "C/C++ GCC: Debug Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
-        },
-        {
-            "label": "C/C++ GCC: Release Build KeySender Sample",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": ".\\Builder.bat",
-            "args": [
-                "1",
-                "D",
-                "N"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                // "isDefault": true
-            },
-            "dependsOn": [
-                "C/C++ GCC: Release Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
-        },
-        {
-            "label": "C/C++ GCC: Create CMake Cache Files for KeySender Sample (Debug)",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": "cmake",
-            "args": ["-G", "MinGW Makefiles", "-B", "${workspaceFolder}\\Build\\KeySender\\Debug", "-S", "${workspaceFolder}\\Samples\\KeySenderSample", "-D", "CMAKE_BUILD_TYPE=Debug" ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-            }
-        },
-        {
-            "label": "C/C++ GCC: Create CMake Cache Files for KeySender Sample (Release)",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": "cmake",
-            "args": ["-G", "MinGW Makefiles", "-B", "${workspaceFolder}\\Build\\KeySender\\Release", "-S", "${workspaceFolder}\\Samples\\KeySenderSample", "-D", "CMAKE_BUILD_TYPE=Release" ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-            }
-        },
-        {
-            "label": "C/C++ GCC: Debug Build KeySender Sample (via CMake)",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": "cmake --build . --target install --config Debug",
-            "args": [],
-            "options": {
-                "cwd": "${workspaceFolder}/Build/KeySender/Debug"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "dependsOn": [
-                "C/C++ GCC: Create CMake Cache Files for KeySender Sample (Debug)"
-            ],
-            "dependsOrder": "sequence"
-        },
-        {
-            "label": "C/C++ GCC: Release Build KeySender Sample (via CMake)",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": "cmake --build . --target install --config Release --parallel 8",
-            "args": [],
-            "options": {
-                "cwd": "${workspaceFolder}/Build/KeySender/Release"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                // "isDefault": true
-            },
-            "dependsOn": [
-                "C/C++ GCC: Create CMake Cache Files for KeySender Sample (Release)"
-            ],
-            "dependsOrder": "sequence"
-        },
-        //
-        // END: Building Source Files of Key Sender Sample Project
-        //
-        //
-        // BEGIN: Building Source Files of Registerer Sample Project
-        //
-        {
-            "label": "C/C++ GCC: Debug Build Registerer Sample",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": ".\\Builder.bat",
-            "args": [
-                "2",
-                "D",
-                "N"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                // "isDefault": true
-            },
-            "dependsOn": [
-                "C/C++ GCC: Debug Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
-        },
-        {
-            "label": "C/C++ GCC: Release Build Registerer Sample",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": ".\\Builder.bat",
-            "args": [
-                "2",
-                "D",
-                "N"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                // "isDefault": true
-            },
-            "dependsOn": [
-                "C/C++ GCC: Release Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
-        },
-        {
-            "label": "C/C++ GCC: Create CMake Cache Files for Registerer Sample (Debug)",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": "cmake",
-            "args": ["-G", "MinGW Makefiles", "-B", "${workspaceFolder}\\Build\\Registerer\\Debug", "-S", "${workspaceFolder}\\Samples\\RegistererSample", "-D", "CMAKE_BUILD_TYPE=Debug" ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "none",
-            }
-        },
-        {
-            "label": "C/C++ GCC: Create CMake Cache Files for Registerer Sample (Release)",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": "cmake",
-            "args": ["-G", "MinGW Makefiles", "-B", "${workspaceFolder}\\Build\\Registerer\\Release", "-S", "${workspaceFolder}\\Samples\\RegistererSample", "-D", "CMAKE_BUILD_TYPE=Release" ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "none",
-            }
-        },
-        {
-            "label": "C/C++ GCC: Debug Build Registerer Sample (via CMake)",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": "cmake --build . --target install --config Debug",
-            "args": [],
-            "options": {
-                "cwd": "${workspaceFolder}/Build/Registerer/Debug"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                // "isDefault": true
-            },
-            "dependsOn": [
-                "C/C++ GCC: Create CMake Cache Files for Registerer Sample (Debug)"
-            ],
-            "dependsOrder": "sequence"
-        },
-        {
-            "label": "C/C++ GCC: Release Build Registerer Sample (via CMake)",
-            "icon": {
-                "id": "alert",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "shell",
-            "command": "cmake --build . --target install --config Release --parallel 8",
-            "args": [],
-            "options": {
-                "cwd": "${workspaceFolder}/Build/Registerer/Release"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                // "isDefault": true
-            },
-            "dependsOn": [
-                "C/C++ GCC: Create CMake Cache Files for Registerer Sample (Release)"
-            ],
-            "dependsOrder": "sequence"
-        }
-        //
-        // END: Building Source Files of Registerer Sample Project
         //
     ]
 }
