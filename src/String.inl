@@ -103,24 +103,20 @@ namespace Wcm
     {
         T *buffer = static_cast<T *>(std::malloc(sizeof(T) * (str.size() + 1)));
         std::memcpy(buffer, str.data(), sizeof(T) * (str.size() + 1));
-        return std::shared_ptr<T>{buffer, [](T *p) { std::free(p); }};
+        return std::shared_ptr<T>{buffer, [](T *p)
+                                  { std::free(p); }};
     }
 
-    template <StringLike T>
-    auto GetData(T &&t)
+    template <Character T>
+    std::shared_ptr<T> StringAppend(const T *str, const T *subStr)
     {
-        if constexpr ( requires { std::ranges::data(t); })
-        {
-            return std::ranges::data(t);
-        }
-        else if constexpr ( requires { std::ranges::data(t.native()); })
-        {
-            return std::ranges::data(t.native());
-        }
-        else if constexpr (CharacterPointer<T>)
-        {
-            return t;
-        }
+        const auto len = GetStringLength(str);
+        const auto lenSub = GetStringLength(subStr);
+        T *buf = static_cast<T *>(std::malloc(len + lenSub + 1));
+        std::memcpy(buf, str, sizeof(T) * len);
+        std::memcpy(buf + len, subStr, sizeof(T) * (lenSub + 1));
+        return std::shared_ptr<T>{buf, [](T *p)
+                                  { std::free(p); }};
     }
 
     template <StringLike T>
@@ -134,6 +130,28 @@ namespace Wcm
         {
             return {Begin(str.native()), End(str.native())};
         }
+    }
+
+    auto ToString(std::integral auto num)
+    {
+        return Impl::ToString<char>(num);
+    }
+
+    template <std::integral auto N>
+    auto ToString()
+    {
+        return Impl::ToString<char, N>();
+    }
+
+    auto ToWString(std::integral auto num)
+    {
+        return Impl::ToString<wchar_t>(num);
+    }
+
+    template <std::integral auto N>
+    auto ToWString()
+    {
+        return Impl::ToString<wchar_t, N>();
     }
 
     Impl::StringConverter::byte_string ToString(const auto &wide)
@@ -204,6 +222,23 @@ namespace Wcm
 
     namespace Impl
     {
+        template <StringLike T>
+        constexpr auto GetDataT::operator()(T &&t) const
+        {
+            if constexpr (requires { std::ranges::data(t); })
+            {
+                return std::ranges::data(t);
+            }
+            else if constexpr (requires { std::ranges::data(t.native()); })
+            {
+                return std::ranges::data(t.native());
+            }
+            else if constexpr (CharacterPointer<T>)
+            {
+                return t;
+            }
+        }
+
         constexpr bool UnorderedContainsT::operator()(const CharacterStringAny auto &lhs, const CharacterStringAny auto &rhs) const noexcept
         {
 #ifdef WCM_CPP23
@@ -412,20 +447,114 @@ namespace Wcm
         {
             if constexpr (std::is_same_v<wchar_t, T>)
             {
-                return (!caseSensitive ? _wcsnicmp(lhs.data(), rhs.data(), length) :
-                    std::wcsncmp(lhs.data(), rhs.data(), length)) == 0;
+                return (!caseSensitive ? _wcsnicmp(lhs.data(), rhs.data(), length) : std::wcsncmp(lhs.data(), rhs.data(), length)) == 0;
             }
             else if constexpr (std::is_same_v<char, T>)
             {
-                return (!caseSensitive ? _strnicmp(lhs.data(), rhs.data(), length) :
-                    std::strncmp(lhs.data(), rhs.data(), length)) == 0;
+                return (!caseSensitive ? _strnicmp(lhs.data(), rhs.data(), length) : std::strncmp(lhs.data(), rhs.data(), length)) == 0;
             }
             // When type is only the plain char(signed or unsigned implementation defined) should first be converted to unsigned char,
             // other char types including char8_t(always unsigned) doesn't need to be converted.
             return !caseSensitive ? std::ranges::equal(lhs, rhs, [](const T c1, const T c2)
-                { return std::char_traits<T>::eq_int_type(std::toupper(c1, std::locale("en_US.utf8")),
-                                                          std::toupper(c2, std::locale("en_US.utf8"))); }) :
-                    std::char_traits<T>::compare(lhs.data(), rhs.data(), length) == 0;
+                                                       { return std::char_traits<T>::eq_int_type(std::toupper(c1, std::locale("en_US.utf8")),
+                                                                                                 std::toupper(c2, std::locale("en_US.utf8"))); })
+                                  : std::char_traits<T>::compare(lhs.data(), rhs.data(), length) == 0;
+        }
+
+        template <typename C, std::integral auto N>
+            requires(std::same_as<C, char> || std::same_as<C, wchar_t>)
+        auto ToString()
+        {
+            std::array<char, ([]() consteval -> std::size_t
+                              {
+        if (auto n = N; n != 0)
+        {
+        std::size_t count = 0;
+        while (n != 0)
+        {
+            n = n / 10;
+            ++count;
+        }
+        return count + (N < 0) + 1;
+        }
+        return 1 + (N < 0) + 1; })()>
+                res;
+            if (const auto [ptr, ec] = std::to_chars(res.data(), res.data() + res.size(), N); ec != std::errc())
+            {
+                if constexpr (const auto errMsg = std::make_error_code(ec).message(); std::same_as<C, char>)
+                {
+                    std::array<char, STRSAFE_MAX_CCH> err;
+                    std::memcpy(err.data(), errMsg.c_str(), errMsg.size() + 1);
+                    return err;
+                }
+                else
+                {
+                    std::array<wchar_t, STRSAFE_MAX_CCH> errw;
+                    std::mbstowcs(errw.data(), errMsg.c_str(), errMsg.size() + 1);
+                    return errw;
+                }
+            }
+            res.back() = '\0';
+            if constexpr (std::same_as<C, char>)
+            {
+                return res;
+            }
+            else
+            {
+                std::array<C, res.size()> resw;
+                std::mbstowcs(resw.data(), res.data(), res.size());
+                return resw;
+            }
+        }
+
+        template <typename C>
+            requires(std::same_as<C, char> || std::same_as<C, wchar_t>)
+        auto ToString(std::integral auto num)
+        {
+            const int len = (([num]() mutable -> int
+                              {
+        if (num != 0)
+        {
+        int count = 0;
+        while (num != 0)
+        {
+            num = num / 10;
+            ++count;
+        }
+        return count + (num < 0) + 1;
+        }
+        return 1 + (num < 0) + 1; })());
+            char *buf = static_cast<char *>(std::malloc(len));
+            if (const auto [ptr, ec] = std::to_chars(buf, buf + len, num); ec != std::errc())
+            {
+                if constexpr (const auto errMsg = std::make_error_code(ec).message(); std::same_as<C, char>)
+                {
+                    char *err = static_cast<char *>(std::malloc(errMsg.size() + 1));
+                    std::memcpy(err, errMsg.c_str(), errMsg.size() + 1);
+                    return std::shared_ptr<char>{err, [](char *p)
+                                                 { std::free(p); }};
+                }
+                else
+                {
+                    wchar_t *errw = static_cast<wchar_t *>(std::malloc(sizeof(wchar_t) * errMsg.size() + 1));
+                    std::mbstowcs(errw, errMsg.c_str(), errMsg.size() + 1);
+                    return std::shared_ptr<wchar_t>{errw, [](wchar_t *p)
+                                                    { std::free(p); }};
+                }
+            }
+            (*(buf + len)) = '\0';
+            if constexpr (std::same_as<C, char>)
+            {
+                return std::shared_ptr<char>{buf, [](char *p)
+                                             { std::free(p); }};
+            }
+            else
+            {
+                wchar_t *bufw = static_cast<wchar_t *>(std::malloc(sizeof(wchar_t) * len));
+                std::mbstowcs(bufw, buf, len);
+                return std::shared_ptr<wchar_t>{bufw, [](wchar_t *p)
+                                                { std::free(p); }};
+            }
         }
     }
 }
