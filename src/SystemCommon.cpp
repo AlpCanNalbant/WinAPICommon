@@ -39,6 +39,15 @@ namespace Wcm
         return {lpBuffer};
     }
 
+    HWND GetParentOr(HWND hWndOwner, HWND hWndDefault)
+    {
+        if (HWND hWndParent = GetParent(hWndOwner); hWndParent != NULL && hWndParent != hWndOwner)
+        {
+            return hWndParent;
+        }
+        return hWndDefault;
+    }
+
     void CloseWindow(HWND hWnd)
     {
         SendMessageW(hWnd, WM_CLOSE, 0, 0);
