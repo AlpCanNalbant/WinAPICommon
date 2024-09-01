@@ -5,7 +5,7 @@ title The Windows API Common Helper Library Builder
 
 setlocal EnableDelayedExpansion
 
-set Projects=WinAPICommon
+set Projects=WinAPICommon KeySender Registerer
 set SourceFilesExtension=.cpp
 set HeaderFilesExtension=.hpp
 
@@ -44,7 +44,7 @@ set IsEverPrompted=1
 :Param1Check
 if "%Param1%"=="" goto :Param1Prompt
 set i=%Param1%
-if not %i%==0 goto :Param1PromptWrong
+if not %i%==0 if not %i%==1 if not %i%==2 goto :Param1PromptWrong
 
 if %IsEverPrompted%==1 call :WaitForPendingOperationBeginWithThreeDot
 
@@ -126,6 +126,24 @@ set IsDynamicLibrary=False
         set ProjectName=WinAPICommon
         set PrecompiledHeader=%SourceDirectory%/Precompiled
         set IsStaticLibrary=True
+    goto :SwitchCaseEnd
+    :Case_1
+        set SourceDirectory=%BaseDirectory%Examples\KeySenderSample
+        set SourceFiles=WinMain
+        set ProjectName=KeySender
+        set IncludeDirectories=%BaseDirectory%src
+        set StaticLibraries=WinAPICommon
+        set StaticLibraryDirectories=%BinaryOutputsDirectory%
+        set PrecompiledHeader=%BaseDirectory%/src/Precompiled
+    goto :SwitchCaseEnd
+    :Case_2
+        set SourceDirectory=%BaseDirectory%Examples\RegistererSample
+        set SourceFiles=WinMain
+        set ProjectName=Registerer
+        set IncludeDirectories=%BaseDirectory%src
+        set StaticLibraries=WinAPICommon
+        set StaticLibraryDirectories=%BinaryOutputsDirectory%
+        set PrecompiledHeader=%BaseDirectory%/src/Precompiled
     goto :SwitchCaseEnd
 :SwitchCaseEnd
 
