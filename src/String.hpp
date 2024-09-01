@@ -7,6 +7,7 @@
 #include <wchar.h>
 #include <cwctype>
 #include <cwchar>
+#include <charconv>
 #include <string_view>
 #include <type_traits>
 #include <strsafe.h>
@@ -53,12 +54,18 @@ namespace Wcm
         using StringConverter =
             std::wstring_convert<std::conditional_t<sizeof(wchar_t) == 4, std::codecvt_utf8<wchar_t>, std::codecvt_utf8_utf16<wchar_t>>>;
 
+        struct GetDataT final
+        {
+            template <StringLike T>
+            [[nodiscard]] constexpr auto operator()(T &&t) const;
+        };
+
         template <typename T>
         constexpr bool IsConvertibleWString =
-            requires(T wide) { { (StringConverter{}).to_bytes(wide) } -> std::same_as<StringConverter::byte_string>; };
+            requires(T wide) { { (StringConverter{}).to_bytes((GetDataT{})(wide)) } -> std::same_as<StringConverter::byte_string>; };
         template <typename T>
         constexpr bool IsConvertibleString =
-            requires(T narrow) { { (StringConverter{}).from_bytes(narrow) } -> std::same_as<StringConverter::wide_string>; };
+            requires(T narrow) { { (StringConverter{}).from_bytes((GetDataT{})(narrow)) } -> std::same_as<StringConverter::wide_string>; };
 
         template <typename T>
         constexpr bool IsByteString =
@@ -160,6 +167,13 @@ namespace Wcm
                 requires std::same_as<T, T>
             [[nodiscard]] constexpr bool IsSameString(std::basic_string_view<T> lhs, std::basic_string_view<T> rhs, const size_t length, const bool caseSensitive) const noexcept;
         };
+
+        template <typename C, std::integral auto N>
+            requires(std::same_as<C, char> || std::same_as<C, wchar_t>)
+        [[nodiscard]] auto ToString();
+        template <typename C>
+            requires(std::same_as<C, char> || std::same_as<C, wchar_t>)
+        [[nodiscard]] auto ToString(std::integral auto num);
     }
 
     template <CharacterRawString T>
@@ -168,6 +182,7 @@ namespace Wcm
     inline constexpr Impl::UnorderedContainsT UnorderedContains{};
     inline constexpr Impl::ContainsT Contains{};
     inline constexpr Impl::IsSameStringT IsSameString{};
+    inline constexpr Impl::GetDataT GetData{};
 
     // template <StringLike T>
     // std::basic_string_view<CharacterOf<T>> SetQuoted(T &str, const CharacterOf<T> delim = '"', const CharacterOf<T> escape = '\\');
@@ -180,10 +195,16 @@ namespace Wcm
     template <Character T>
     [[nodiscard]] std::shared_ptr<T> ToBuffer(std::basic_string_view<T> str);
     StringCopyResult StringCopy(LPTSTR dest, LPCTSTR src);
-    template <StringLike T>
-    [[nodiscard]] auto GetData(T &&t);
+    template <Character T>
+    std::shared_ptr<T> StringAppend(const T *str, const T *subStr);
     template <StringLike T>
     [[nodiscard]] constexpr std::basic_string_view<CharacterOf<T>> ToStringView(const T &str);
+    [[nodiscard]] auto ToString(std::integral auto num);
+    template <std::integral auto N>
+    [[nodiscard]] auto ToString();
+    [[nodiscard]] auto ToWString(std::integral auto num);
+    template <std::integral auto N>
+    [[nodiscard]] auto ToWString();
     [[nodiscard]] Impl::StringConverter::byte_string ToString(const auto &wide)
         requires Impl::IsConvertibleWString<decltype(wide)>;
     template <typename T>
