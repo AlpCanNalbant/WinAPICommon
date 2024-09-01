@@ -5,7 +5,7 @@ title The Windows API Common Helper Library Builder
 
 setlocal EnableDelayedExpansion
 
-set Projects=WinAPICommon KeySender Registerer
+set Projects=WinAPICommon
 set SourceFilesExtension=.cpp
 set HeaderFilesExtension=.hpp
 
@@ -44,7 +44,7 @@ set IsEverPrompted=1
 :Param1Check
 if "%Param1%"=="" goto :Param1Prompt
 set i=%Param1%
-if not %i%==0 if not %i%==1 if not %i%==2 goto :Param1PromptWrong
+if not %i%==0 goto :Param1PromptWrong
 
 if %IsEverPrompted%==1 call :WaitForPendingOperationBeginWithThreeDot
 
@@ -127,24 +127,6 @@ set IsDynamicLibrary=False
         set PrecompiledHeader=%SourceDirectory%/Precompiled
         set IsStaticLibrary=True
     goto :SwitchCaseEnd
-    :Case_1
-        set SourceDirectory=%BaseDirectory%Samples\KeySenderSample
-        set SourceFiles=WinMain
-        set ProjectName=KeySender
-        set IncludeDirectories=%BaseDirectory%src
-        set StaticLibraries=WinAPICommon
-        set StaticLibraryDirectories=%BinaryOutputsDirectory%
-        set PrecompiledHeader=%BaseDirectory%/src/Precompiled
-    goto :SwitchCaseEnd
-    :Case_2
-        set SourceDirectory=%BaseDirectory%Samples\RegistererSample
-        set SourceFiles=WinMain
-        set ProjectName=Registerer
-        set IncludeDirectories=%BaseDirectory%src
-        set StaticLibraries=WinAPICommon
-        set StaticLibraryDirectories=%BinaryOutputsDirectory%
-        set PrecompiledHeader=%BaseDirectory%/src/Precompiled
-    goto :SwitchCaseEnd
 :SwitchCaseEnd
 
 if /I "%IsStaticLibrary%"=="True" if /I "%IsDynamicLibrary%"=="True" (
@@ -192,7 +174,7 @@ set StaticLibraries=%PrefixedStaticLibraries%
 set StaticLibraryDirectories=%PrefixedStaticLibraryDirectories%
 
 @REM Set the compiler variables of the static libraries for the linking process.
-set StaticWin32Libraries=-lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -lUser32
+set StaticWin32Libraries=-lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -lUser32 -lUxTheme -lDwmapi -lGdi32
 set StaticMinGWLibraries=-static-libgcc -static-libstdc++ -lpthread
 set AllStaticLibraries=%StaticLibraries% %StaticWin32Libraries% %StaticMinGWLibraries%
 
