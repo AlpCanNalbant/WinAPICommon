@@ -27,7 +27,7 @@ namespace Wcm
         {
             inline static std::vector<std::tuple<std::shared_ptr<TCHAR>, HWND, HHOOK, bool, HICON, WNDPROC, std::vector<ButtonT>>> instances;
 
-            int operator()(LPCTSTR text = nullptr, LPCTSTR title = nullptr, DWORD styleFlags = static_cast<DWORD>(MessageBoxStyle::Ok), HICON hWndIcon = nullptr, HINSTANCE hIcoResModule = nullptr, LPCTSTR titleIconRes = nullptr, const DWORD langID = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US)) const;
+            int operator()(LPCTSTR text = nullptr, LPCTSTR title = nullptr, DWORD styleFlags = MessageBoxStyle::Ok, HICON hWndIcon = nullptr, HINSTANCE hIcoResModule = nullptr, LPCTSTR titleIconRes = nullptr, const DWORD langID = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US)) const;
         };
     }
 
