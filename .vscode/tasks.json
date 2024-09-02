@@ -133,8 +133,7 @@
             },
             "dependsOn": [
                 "C/C++ GCC: Create CMake Cache Files for WinAPICommon Library (Debug)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         },
         {
             "label": "C/C++ GCC: Release Build WinAPICommon Library (via CMake)",
@@ -157,8 +156,7 @@
             },
             "dependsOn": [
                 "C/C++ GCC: Create CMake Cache Files for WinAPICommon Library (Release)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         },
         //
         // END: Building Source Files of Windows API Common Library Project
@@ -190,9 +188,8 @@
                 // "isDefault": true
             },
             "dependsOn": [
-                "C/C++ GCC: Debug Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
+                "C/C++ GCC: Debug Build WinAPICommon Library (via Builder)"
+            ]
         },
         {
             "label": "C/C++ GCC: Debug Build KeySender Sample (via Builder)",
@@ -242,9 +239,8 @@
                 // "isDefault": true
             },
             "dependsOn": [
-                "C/C++ GCC: Release Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
+                "C/C++ GCC: Release Build WinAPICommon Library (via Builder)"
+            ]
         },
         {
             "label": "C/C++ GCC: Release Build KeySender Sample (via Builder)",
@@ -351,8 +347,7 @@
             },
             "dependsOn": [
                 "C/C++ GCC: Create CMake Cache Files for KeySender Sample (Debug)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         },
         {
             "label": "C/C++ GCC: Release Build KeySender Sample (via CMake)",
@@ -375,8 +370,7 @@
             },
             "dependsOn": [
                 "C/C++ GCC: Create CMake Cache Files for KeySender Sample (Release)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         },
         //
         // END: Building Source Files of Key Sender Sample Project
@@ -408,9 +402,8 @@
                 // "isDefault": true
             },
             "dependsOn": [
-                "C/C++ GCC: Debug Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
+                "C/C++ GCC: Debug Build WinAPICommon Library (via Builder)"
+            ]
         },
         {
             "label": "C/C++ GCC: Debug Build Registerer Sample (via Builder)",
@@ -460,9 +453,8 @@
                 // "isDefault": true
             },
             "dependsOn": [
-                "C/C++ GCC: Release Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
+                "C/C++ GCC: Release Build WinAPICommon Library (via Builder)"
+            ]
         },
         {
             "label": "C/C++ GCC: Release Build Registerer Sample (via Builder)",
@@ -569,8 +561,7 @@
             },
             "dependsOn": [
                 "C/C++ GCC: Create CMake Cache Files for Registerer Sample (Debug)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         },
         {
             "label": "C/C++ GCC: Release Build Registerer Sample (via CMake)",
@@ -593,8 +584,7 @@
             },
             "dependsOn": [
                 "C/C++ GCC: Create CMake Cache Files for Registerer Sample (Release)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         },
         //
         // END: Building Source Files of Registerer Sample Project
@@ -626,9 +616,8 @@
                 // "isDefault": true
             },
             "dependsOn": [
-                "C/C++ GCC: Debug Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
+                "C/C++ GCC: Debug Build WinAPICommon Library (via Builder)"
+            ]
         },
         {
             "label": "C/C++ GCC: Debug Build MsgBox Sample (via Builder)",
@@ -678,9 +667,8 @@
                 // "isDefault": true
             },
             "dependsOn": [
-                "C/C++ GCC: Release Build WinAPICommon Library"
-            ],
-            "dependsOrder": "sequence"
+                "C/C++ GCC: Release Build WinAPICommon Library (via Builder)"
+            ]
         },
         {
             "label": "C/C++ GCC: Release Build MsgBox Sample (via Builder)",
@@ -787,8 +775,7 @@
             },
             "dependsOn": [
                 "C/C++ GCC: Create CMake Cache Files for MsgBox Sample (Debug)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         },
         {
             "label": "C/C++ GCC: Release Build MsgBox Sample (via CMake)",
@@ -811,8 +798,7 @@
             },
             "dependsOn": [
                 "C/C++ GCC: Create CMake Cache Files for MsgBox Sample (Release)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         }
         //
         // END: Building Source Files of MsgBox Sample Project
