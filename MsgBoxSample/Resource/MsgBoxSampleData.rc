@@ -1,0 +1,6 @@
+/////////////////////////////////////////////////////////////////////////////
+// Embedded Resources //////////////////////////////////////////////////////
+
+/* Icon      */                  1   ICON "WinAPICommonLogo.ico"
+/* Question Icon */              2   ICON "WinAPICommonQuestionMarkLogo.ico"
+/* Question Icon (DarkTheme) */  3   ICON "WinAPICommonQuestionMarkLogo(DarkTheme).ico"

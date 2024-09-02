@@ -1,0 +1,9 @@
+# Ignore specified folders.
+Build/
+bin/
+obj/
+temp/
+include/
+.vscode/*
+*.code-workspace
+*.bat
