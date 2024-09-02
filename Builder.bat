@@ -5,7 +5,7 @@ title The Windows API Common Helper Library Builder
 
 setlocal EnableDelayedExpansion
 
-set Projects=WinAPICommon KeySender Registerer
+set Projects=WinAPICommon KeySender Registerer MsgBox
 set SourceFilesExtension=.cpp
 set HeaderFilesExtension=.hpp
 
@@ -44,7 +44,7 @@ set IsEverPrompted=1
 :Param1Check
 if "%Param1%"=="" goto :Param1Prompt
 set i=%Param1%
-if not %i%==0 if not %i%==1 if not %i%==2 goto :Param1PromptWrong
+if not %i%==0 if not %i%==1 if not %i%==2 if not %i%==3 goto :Param1PromptWrong
 
 if %IsEverPrompted%==1 call :WaitForPendingOperationBeginWithThreeDot
 
@@ -114,6 +114,10 @@ if "%ObjectOutputsDirectory%"=="" (
 set IsStaticLibrary=False
 set IsDynamicLibrary=False
 
+@REM This resource directory will be used as an base search directory for win32 resource files (.rc) and DEF files which is definitions of symbols (.def).
+@REM If you do not assing its value, source directory of the project will be used. When it's non-empty it's will be relative to current source directory.
+set ResourceDirectory=
+
 @REM Set the source directory, project name, library status and the source file names without their extensions based of the current project via switch case mechanism.
 :SwitchCase
     goto :Case_%ProjectIndex% 2>nul || (
@@ -145,6 +149,17 @@ set IsDynamicLibrary=False
         set StaticLibraryDirectories=%BinaryOutputsDirectory%
         set PrecompiledHeader=%BaseDirectory%/src/Precompiled
     goto :SwitchCaseEnd
+    :Case_3
+        set SourceDirectory=%BaseDirectory%Examples\MsgBoxSample
+        set SourceFiles=WinMain
+        set ProjectName=MsgBox
+        set IncludeDirectories=%BaseDirectory%src
+        set StaticLibraries=WinAPICommon
+        set StaticLibraryDirectories=%BinaryOutputsDirectory%
+        set PrecompiledHeader=%BaseDirectory%/src/Precompiled
+        set ResourceFileNames=MsgBoxSampleData
+        set ResourceDirectory=Resource
+    goto :SwitchCaseEnd
 :SwitchCaseEnd
 
 if /I "%IsStaticLibrary%"=="True" if /I "%IsDynamicLibrary%"=="True" (
@@ -173,6 +188,7 @@ PATH="%PATH%;%CompilerDirectory%;%Compilerx64Directory%;%CompilerUserDirectory%"
 set Compiler=%CompilerDirectory%\x86_64-w64-mingw32-c++.exe
 set Archiver=%CompilerDirectory%\x86_64-w64-mingw32-gcc-ar.exe
 set MakeDir=%CompilerUserDirectory%\mkdir.exe
+set ResourceFileCompiler=%CompilerDirectory%\windres.exe
 
 for %%s in (%SourceFiles%) do (
     call set ObjectFiles=%%ObjectFiles%% %ObjectOutputsDirectory%/%%s.o
@@ -192,7 +208,7 @@ set StaticLibraries=%PrefixedStaticLibraries%
 set StaticLibraryDirectories=%PrefixedStaticLibraryDirectories%
 
 @REM Set the compiler variables of the static libraries for the linking process.
-set StaticWin32Libraries=-lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -lUser32 -lUxTheme -lDwmapi -lGdi32
+set StaticWin32Libraries=-lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -lcomctl32 -lUser32 -lUxTheme -lDwmapi -lGdi32
 set StaticMinGWLibraries=-static-libgcc -static-libstdc++ -lpthread
 set AllStaticLibraries=%StaticLibraries% %StaticWin32Libraries% %StaticMinGWLibraries%
 
@@ -237,6 +253,13 @@ if %IsCalledFromAnotherBuilder%==False (
     set "ArchiverOutputsDirectory=%ObjectOutputsDirectory%"
 )
 
+call :SetResourceDirectory
+
+for %%s in (%ResourceFileNames%) do (
+    %ResourceFileCompiler% -i %ResourceDirectory%\%%s.rc -o %ObjectOutputsDirectory%\%%s.o
+    call set ObjectFiles=%%ObjectFiles%% %ObjectOutputsDirectory%\%%s.o
+)
+
 @REM Start the linking process of current executable or static library project. Shared library projects does not supported yet.
 if %IsLibrary%==False (
     %Compiler% %StaticLibraryDirectories% %BuildOptions% -o %BinaryOutputsDirectory%/%ProjectName%.exe %ObjectFiles% -static %AllStaticLibraries%
@@ -245,6 +268,13 @@ if %IsLibrary%==False (
 )
 
 goto :EndOfBuildOperation
+
+:SetResourceDirectory
+
+if not "%ResourceDirectory%"=="" set ResourceDirectory=%SourceDirectory%\%ResourceDirectory%
+if "%ResourceDirectory%"=="" set ResourceDirectory=%SourceDirectory%
+
+goto:eof
 
 endlocal
 
