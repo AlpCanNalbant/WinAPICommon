@@ -71,7 +71,9 @@
 			"stop_token": "cpp",
 			"thread": "cpp",
 			"typeinfo": "cpp",
-			"*.rh": "cpp"
+			"*.rh": "cpp",
+			"text_encoding": "cpp",
+			"cinttypes": "cpp"
 		}
 	}
 }
