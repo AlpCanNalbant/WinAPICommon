@@ -22,7 +22,7 @@ file(GLOB_RECURSE WIN_API_COMMON_SOURCE CONFIGURE_DEPENDS "src/*.cpp")
 
 add_library(${PROJECT_NAME} STATIC ${WIN_API_COMMON_HEADERS} ${WIN_API_COMMON_SOURCE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME WinAPICommon CXX_STANDARD ${WINAPICOMMON_CPP_VERSION} CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
-target_link_libraries(${PROJECT_NAME} INTERFACE -lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -lUser32 -lUxTheme -lDwmapi -lGdi32)
+target_link_libraries(${PROJECT_NAME} INTERFACE -lwtsapi32 -lkernel32 -lshlwapi -lcmcfg32 -lpathcch -lshell32 -lcomctl32 -lUser32 -lUxTheme -lDwmapi -lGdi32)
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${WINAPICOMMON_PRECOMPILED_HEADER})
 target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:Debug>:_DEBUG>" "$<$<CONFIG:Release>:NDEBUG>" "WINVER=0x0A00;_WIN32_WINNT=0x0A00") # Set to target every version of the Windows 10 operating system.
 target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:Debug>:-m64;-municode;-Wall;-Wextra;-Wformat=2;-Wunused;-Wpedantic;>" "$<$<CONFIG:Release>:-m64;-municode;>")
