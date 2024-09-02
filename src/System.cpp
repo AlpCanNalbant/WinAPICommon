@@ -413,6 +413,7 @@ namespace Wcm
         static BOOL CALLBACK EnumControlWndsCallback(HWND, LPARAM);
         static LRESULT CALLBACK ButtonProc(HWND, UINT, WPARAM, LPARAM, UINT_PTR, DWORD_PTR);
 
+        // This function is actually a layer for 'MessageBoxIndirect()' function. It's only calls 'MessageBox()' function as an alternative when an error occurs. Most of the time we create our own icons for our own applications :).
         int MsgBoxT::operator()(LPCTSTR text, LPCTSTR title, DWORD styleFlags, HICON hWndIcon, HINSTANCE hIcoResModule, LPCTSTR titleIconRes, const DWORD langID) const
         {
             const auto insert = [title](const int seed) -> std::pair<decltype(MsgBoxT::instances)::iterator, bool>
@@ -428,7 +429,7 @@ namespace Wcm
                 }
                 return {MsgBoxT::instances.emplace(
                             MsgBoxT::instances.cend(),
-                            Wcm::StringAppend((title != nullptr) ? title : TEXT("Error"), ToString<TCHAR>(MsgBoxT::instances.size() + seed).get()), HWND{nullptr}, HHOOK{nullptr}, false, HICON{nullptr}, WNDPROC{nullptr}, std::vector<ButtonT>{}),
+                            StringAppend((title != nullptr) ? title : TEXT("Error"), ToString<TCHAR>(seed).get()), HWND{nullptr}, HHOOK{nullptr}, false, HICON{nullptr}, WNDPROC{nullptr}, std::vector<ButtonT>{}),
                         true};
             };
             constexpr auto rand = []
@@ -444,9 +445,9 @@ namespace Wcm
             }
             auto it = insertRes.first;
 
-            if (Wcm::HasFlag(styleFlags, MessageBoxStyle::DarkMode))
+            if (HasFlag(styleFlags, MessageBoxStyle::DarkMode))
             {
-                styleFlags &= ~(static_cast<DWORD>(MessageBoxStyle::DarkMode));
+                styleFlags &= ~(MessageBoxStyle::DarkMode);
                 std::get<3>(*it) = true;
             }
 
@@ -454,9 +455,11 @@ namespace Wcm
             mbp.cbSize = sizeof(mbp);
             mbp.hwndOwner = nullptr;
             mbp.lpszText = text;
-            mbp.lpszCaption = std::get<0>(*it).get(); // title;
-            mbp.dwStyle = MB_USERICON | MB_SETFOREGROUND | styleFlags;
+            mbp.lpszCaption = std::get<0>(*it).get();
+            mbp.dwStyle = styleFlags; // 'MB_SETFOREGROUND | MB_TOPMOST' ~ These flags are left to the user's wishes and desires.
             mbp.dwLanguageId = langID;
+            mbp.hInstance = hIcoResModule;
+            mbp.lpszIcon = titleIconRes;
 
             if (titleIconRes)
             {
@@ -464,18 +467,14 @@ namespace Wcm
                 {
                     Wcm::Log->Error("Handle to the module that contains the title icon resource is null. Title icon will not be able to load.");
                 }
-                mbp.hInstance = hIcoResModule;
-                mbp.lpszIcon = titleIconRes;
+                mbp.dwStyle |= MB_USERICON;
             }
 
             std::get<2>(*it) = SetWindowsHookEx(WH_CBT, &CBTCallback, 0, GetCurrentThreadId());
             std::get<4>(*it) = hWndIcon;
             if (std::get<2>(*it))
             {
-                if (hWndIcon)
-                {
-                    return MessageBoxIndirect(&mbp);
-                }
+                return MessageBoxIndirect(&mbp);
             }
             else
             {
@@ -503,7 +502,7 @@ namespace Wcm
                     if (lstrcmpi(lpCrateWnd->lpcs->lpszName, std::get<0>(*it).get()) == 0)
                     {
                         std::get<0>(*it).get()[lstrlen(lpCrateWnd->lpcs->lpszName) - 5 /*5 is length of the window's unique ID*/] = TEXT('\0');
-                        std::get<0>(*it) = Wcm::ToBuffer<wchar_t>(std::get<0>(*it).get());
+                        std::get<0>(*it) = ToBuffer<wchar_t>(std::get<0>(*it).get());
 
                         std::get<1>(*it) = hWnd;
                         if (std::get<4>(*it) != nullptr)
@@ -521,12 +520,12 @@ namespace Wcm
                 {
                     if (lpActivate->hWndActive == std::get<1>(*it))
                     {
-                        SendMessage(lpActivate->hWndActive, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(std::get<0>(*it).get()));
+                        SendMessage(lpActivate->hWndActive, WM_SETTEXT, static_cast<WPARAM>(0), reinterpret_cast<LPARAM>(std::get<0>(*it).get()));
                         UnhookWindowsHookEx(std::get<2>(*it));
 
                         if (std::get<3>(*it) == true)
                         {
-                            std::get<2>(*it) = nullptr; // Assing nullptr to unhooked proc.
+                            std::get<2>(*it) = nullptr; // Assing nullptr to unhooked procedure.
 
                             auto style = GetWindowLongPtr(lpActivate->hWndActive, GWL_STYLE);
                             auto exStyle = GetWindowLongPtr(lpActivate->hWndActive, GWL_EXSTYLE);
@@ -575,8 +574,10 @@ namespace Wcm
 
         static LRESULT CALLBACK MsgBoxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
-            static std::unique_ptr<std::remove_pointer_t<HBRUSH>, WINBOOL (*)(HGDIOBJ)> hBrush1{CreateSolidBrush(0x202020), DeleteObject};
-            static std::unique_ptr<std::remove_pointer_t<HBRUSH>, WINBOOL (*)(HGDIOBJ)> hBrush2{CreateSolidBrush(0x2b2b2b), DeleteObject};
+            static bool init = false;
+
+            static std::unique_ptr<std::remove_pointer_t<HBRUSH>, WINBOOL (*)(HGDIOBJ)> hBrush1 = {nullptr, nullptr};
+            static std::unique_ptr<std::remove_pointer_t<HBRUSH>, WINBOOL (*)(HGDIOBJ)> hBrush2 = {nullptr, nullptr};
 
             static constexpr COLORREF btnColor = RGB(51, 51, 51);
             static constexpr COLORREF btnHoveredColor = RGB(69, 69, 69);
@@ -587,24 +588,26 @@ namespace Wcm
             static constexpr COLORREF btnBorderCheckedColor = RGB(155, 155, 155);
             static constexpr COLORREF btnBorderInactiveColor = RGB(155, 155, 155);
 
-            static bool paintInit = false;
-
             switch (message)
             {
             case WM_ACTIVATE:
             {
-                /* if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE)
+                if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE)
                 {
                     // Got Focus
+                    if (!init)
+                    {
+                        init = true;
+                        BufferedPaintInit();
+                        hBrush1 = {CreateSolidBrush(0x202020), DeleteObject};
+                        hBrush2 = {CreateSolidBrush(0x2b2b2b), DeleteObject};
+                    }
+                    InvalidateRect(hWnd, NULL, TRUE);
                 }
                 else if (wParam == WA_INACTIVE)
                 {
                     // Lost Focus
-                } */
-                if (!paintInit)
-                {
-                    BufferedPaintInit();
-                    paintInit = true;
+                    InvalidateRect(hWnd, NULL, TRUE);
                 }
                 break;
             }
@@ -620,10 +623,12 @@ namespace Wcm
                         break;
                     }
                 }
-                if (MsgBoxT::instances.empty() && paintInit)
+                if (MsgBoxT::instances.empty() && init)
                 {
+                    init = false;
                     BufferedPaintUnInit();
-                    paintInit = false;
+                    hBrush1.reset(nullptr);
+                    hBrush2.reset(nullptr);
                 }
                 break;
             }
@@ -699,36 +704,36 @@ namespace Wcm
 
                             if (!BufferedPaintRenderAnimation(std::get<0>(*itBtn), hDC))
                             {
-                                static const auto drawButton = [](HWND hWnd, HDC hDC, RECT btnRect, COLORREF btnCol, COLORREF btnBorderCol)
+                                static const auto drawButton = [](HWND hWndBtn, HDC hDCBtn, RECT btnRect, COLORREF btnCol, COLORREF btnBorderCol)
                                 {
-                                    HBRUSH hBrush1 = CreateSolidBrush(btnCol);
-                                    HBRUSH hBrush2 = CreateSolidBrush(btnBorderCol);
+                                    HBRUSH hBrBtn = CreateSolidBrush(btnCol);
+                                    HBRUSH hBrBtnBdr = CreateSolidBrush(btnBorderCol);
 
                                     // Draw border of the button.
-                                    FillRect(hDC, &btnRect, hBrush2);
+                                    FillRect(hDCBtn, &btnRect, hBrBtnBdr);
 
                                     // Draw button itself.
                                     btnRect.left += 1;
                                     btnRect.right -= 1;
                                     btnRect.top += 1;
                                     btnRect.bottom -= 1;
-                                    FillRect(hDC, &btnRect, hBrush1);
+                                    FillRect(hDCBtn, &btnRect, hBrBtn);
 
                                     // Draw button text.
-                                    const int len = GetWindowTextLength(hWnd);
+                                    const int len = GetWindowTextLength(hWndBtn);
                                     if (len > 0)
                                     {
                                         TCHAR lpBuf[len + 1];
-                                        GetWindowText(hWnd, lpBuf, len + 1);
+                                        GetWindowText(hWndBtn, lpBuf, len + 1);
 
                                         // Get the current font data for its name.
-                                        HFONT hCurFont = reinterpret_cast<HFONT>(SendMessage(hWnd, WM_GETFONT, 0, 0));
+                                        HFONT hCurFont = reinterpret_cast<HFONT>(SendMessage(hWndBtn, WM_GETFONT, 0, 0));
                                         LOGFONT lf;
                                         GetObject(hCurFont, sizeof(lf), &lf);
                                         // Create the font with the same name but with higher quality.
                                         constexpr auto fontSize = 18;
                                         HFONT hFont =
-                                            CreateFont(fontSize,            // Height Of Font '-4', etc... /*-MulDiv(fontSize, GetDeviceCaps(hDC, LOGPIXELSY), 72)*/
+                                            CreateFont(fontSize,            // Height Of Font '-4', etc... /*-MulDiv(fontSize, GetDeviceCaps(hDCBtn, LOGPIXELSY), 72)*/
                                                        0,                   // Width Of Font
                                                        0,                   // Angle Of Escapement
                                                        0,                   // Orientation Angle
@@ -744,21 +749,21 @@ namespace Wcm
                                                        lf.lfFaceName);      // Font Name 'Segoe UI Light' , etc..
 
                                         // Store prevs, for restoring their olds.
-                                        HFONT hFontPrev = reinterpret_cast<HFONT>(SelectObject(hDC, hFont));
-                                        UINT uAlignPrev = SetTextAlign(hDC, GetTextAlign(hDC) | TA_CENTER);
+                                        HFONT hFontPrev = reinterpret_cast<HFONT>(SelectObject(hDCBtn, hFont));
+                                        UINT uAlignPrev = SetTextAlign(hDCBtn, GetTextAlign(hDCBtn) | TA_CENTER);
 
-                                        SetBkMode(hDC, TRANSPARENT);
-                                        SetTextColor(hDC, RGB(255, 255, 255));
+                                        SetBkMode(hDCBtn, TRANSPARENT);
+                                        SetTextColor(hDCBtn, RGB(255, 255, 255));
 
-                                        ExtTextOut(hDC, btnRect.right / 2, (btnRect.bottom / 2) - (fontSize / 2), ETO_CLIPPED, &btnRect, lpBuf, len, nullptr);
+                                        ExtTextOut(hDCBtn, btnRect.right / 2, (btnRect.bottom / 2) - (fontSize / 2), ETO_CLIPPED, &btnRect, lpBuf, len, nullptr);
 
-                                        SelectObject(hDC, hFontPrev);
-                                        SetTextAlign(hDC, uAlignPrev);
+                                        SelectObject(hDCBtn, hFontPrev);
+                                        SetTextAlign(hDCBtn, uAlignPrev);
                                         DeleteObject(hFont);
                                     }
 
-                                    DeleteObject(hBrush1);
-                                    DeleteObject(hBrush2);
+                                    DeleteObject(hBrBtn);
+                                    DeleteObject(hBrBtnBdr);
                                 };
 
                                 BP_ANIMATIONPARAMS animParams{};
@@ -804,9 +809,10 @@ namespace Wcm
                                 }
                                 else
                                 {
+                                    animParams.dwDuration = 0;
+
                                     std::get<2>(*itBtn)[0] = btnColor;
                                     std::get<2>(*itBtn)[2] = (GetActiveWindow() == hWnd) ? btnBorderColor : btnBorderInactiveColor;
-                                    animParams.dwDuration = 0;
                                 }
 
                                 RECT rcBtn;
@@ -838,17 +844,10 @@ namespace Wcm
 
                             ReleaseDC(std::get<0>(*itBtn), hDC);
                         }
-
-                        break;
+                        return TRUE;
                     }
                 }
-
                 return TRUE;
-            }
-            case WM_DESTROY:
-            {
-                PostQuitMessage(0);
-                break;
             }
             default:
             {
@@ -889,7 +888,7 @@ namespace Wcm
             }
 
             // If this control is a button.
-            if (HWND hWndParent = Wcm::GetParentOr(hWnd))
+            if (HWND hWndParent = GetParentOr(hWnd))
             {
                 for (auto it = MsgBoxT::instances.begin(); it != MsgBoxT::instances.cend(); ++it)
                 {
@@ -897,6 +896,15 @@ namespace Wcm
                     {
                         SetWindowLongPtr(hWnd, GWL_STYLE, WS_CHILD | WS_VISIBLE | BS_OWNERDRAW);
                         SetWindowSubclass(hWnd, ButtonProc, 0, 0);
+
+                        LRESULT length = SendMessage(hWnd, WM_GETTEXTLENGTH, 0, 0);
+                        TCHAR text[length + 2];
+                        SendMessage(hWnd, WM_GETTEXT, static_cast<WPARAM>(length + 1), reinterpret_cast<LPARAM>(text));
+                        if (text[0] == TEXT('&'))
+                        {
+                            SendMessage(hWnd, WM_SETTEXT, static_cast<WPARAM>(0), reinterpret_cast<LPARAM>(&text[1]));
+                        }
+
                         std::get<6>(*it).emplace_back(hWnd, std::array<bool, 3>{{false, false, false}}, std::array<COLORREF, 4>{{RGB(0, 0, 0), RGB(0, 0, 0), RGB(0, 0, 0), RGB(0, 0, 0)}});
                         break;
                     }
@@ -934,7 +942,8 @@ namespace Wcm
 
                                 if (!PtInRect(&rect, pt))
                                 {
-                                    std::get<1>(*itBtn) = {false, false};
+                                    std::get<1>(*itBtn)[0] = false;
+                                    std::get<1>(*itBtn)[1] = false;
                                     ReleaseCapture();
                                     InvalidateRect(hWnd, NULL, TRUE);
                                 }
@@ -944,9 +953,9 @@ namespace Wcm
                         }
                     }
                 }
+                break;
             }
-            break;
-            case WM_LBUTTONDOWN:
+            case WM_LBUTTONDOWN: // Only catchs when the cursor in button's rect area.
             {
                 for (auto itWnd = MsgBoxT::instances.begin(); itWnd != MsgBoxT::instances.cend(); ++itWnd)
                 {
