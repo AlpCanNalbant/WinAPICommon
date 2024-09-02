@@ -56,6 +56,7 @@ namespace Wcm
     [[nodiscard]] bool IsCurrentProcessElevated(bool &error);
     bool BringWindowToTop(HWND hWnd, bool keepTopmost = false);
     bool BringWindowToTop(HWND hWnd, DWORD dwProcessId, bool keepTopmost = false);
+    void CenterRectToMonitor(LPRECT prc);
     bool TerminateProcessFromHwnd(HWND hWnd);
     std::shared_ptr<NOTIFYICONDATA> CreateTrayIcon(HWND hWnd = nullptr, const UINT iconID = 0, HICON hIcon = nullptr);
     bool CreateTrayIcon(NOTIFYICONDATA &outNID, HWND hWnd = nullptr, const UINT iconID = 0, HICON hIcon = nullptr);
