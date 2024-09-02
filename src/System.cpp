@@ -159,6 +159,22 @@ namespace Wcm
         return true;
     }
 
+    void CenterRectToMonitor(LPRECT prc)
+    {
+        HMONITOR hMonitor = MonitorFromRect(prc, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi;
+        mi.cbSize = sizeof(mi);
+        GetMonitorInfo(hMonitor, &mi);
+
+        const RECT rc = mi.rcMonitor;
+        const auto w = prc->right - prc->left;
+        const auto h = prc->bottom - prc->top;
+        prc->left = rc.left + (rc.right - rc.left - w) / 2;
+        prc->top = rc.top + (rc.bottom - rc.top - h) / 2;
+        prc->right = prc->left + w;
+        prc->bottom = prc->top + h;
+    }
+
     bool TerminateProcessFromHwnd(HWND hWnd)
     {
         DWORD procId;
@@ -563,6 +579,13 @@ namespace Wcm
                             MsgBoxT::instances.erase(it);
                             MsgBoxT::instances.shrink_to_fit();
                         }
+
+                        RECT rc;
+                        GetWindowRect(lpActivate->hWndActive, &rc);
+                        CenterRectToMonitor(&rc);
+                        HDWP hDWP = BeginDeferWindowPos(1);
+                        DeferWindowPos(hDWP, lpActivate->hWndActive, nullptr, rc.left, rc.top, rc.right, rc.bottom, SWP_NOSIZE);
+                        EndDeferWindowPos(hDWP);
 
                         break;
                     }
