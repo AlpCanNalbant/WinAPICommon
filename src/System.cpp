@@ -584,7 +584,7 @@ namespace Wcm
                         GetWindowRect(lpActivate->hWndActive, &rc);
                         CenterRectToMonitor(&rc);
                         HDWP hDWP = BeginDeferWindowPos(1);
-                        DeferWindowPos(hDWP, lpActivate->hWndActive, nullptr, rc.left, rc.top, rc.right, rc.bottom, SWP_NOSIZE);
+                        DeferWindowPos(hDWP, lpActivate->hWndActive, nullptr, rc.left, rc.top, rc.right, rc.bottom, SWP_NOSIZE | SWP_DEFERERASE);
                         EndDeferWindowPos(hDWP);
 
                         break;
