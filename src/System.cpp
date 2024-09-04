@@ -518,7 +518,7 @@ namespace Wcm
                     if (lstrcmpi(lpCrateWnd->lpcs->lpszName, std::get<0>(*it).get()) == 0)
                     {
                         std::get<0>(*it).get()[lstrlen(lpCrateWnd->lpcs->lpszName) - 5 /*5 is length of the window's unique ID*/] = TEXT('\0');
-                        std::get<0>(*it) = ToBuffer<wchar_t>(std::get<0>(*it).get());
+                        std::get<0>(*it) = ToBuffer<TCHAR>(std::get<0>(*it).get());
 
                         std::get<1>(*it) = hWnd;
                         if (std::get<4>(*it) != nullptr)
