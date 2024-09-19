@@ -120,7 +120,7 @@ namespace Wcm
     }
 
     template <StringLike T>
-    std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, bool runAsAdmin)
+    std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, const bool runAsAdmin, const ULONG mask, const int showFlags)
     {
         typename std::conditional_t<WideCharacter<CharacterOf<T>>, LPCWSTR, LPCSTR> lpParams;
         const auto commandView = ToStringView(command);
@@ -141,28 +141,25 @@ namespace Wcm
         typename std::conditional_t<WideCharacter<CharacterOf<T>>, SHELLEXECUTEINFOW, SHELLEXECUTEINFOA> shExInfo;
         ZeroMemory(&shExInfo, sizeof(shExInfo));
         shExInfo.cbSize = sizeof(shExInfo);
-        shExInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+        shExInfo.fMask = mask;
         shExInfo.hwnd = hWnd;
         shExInfo.lpVerb = !runAsAdmin ? TEXT("open") : TEXT("runas");
         shExInfo.lpFile = TEXT("cmd.exe");
         shExInfo.lpParameters = lpParams;
-        shExInfo.lpDirectory = NULL;
-        shExInfo.nShow = SW_SHOW;
-        shExInfo.hInstApp = NULL;
+        shExInfo.nShow = showFlags;
 
-        auto hProcess = std::shared_ptr<void>(shExInfo.hProcess, [](auto hProcessRawPtr)
-                                              { CloseHandle(hProcessRawPtr); });
         if (!ShellExecuteEx(&shExInfo))
         {
             Log->Error("Running of command is failed.", GetLastError()).Sub("Command", lpParams);
             return nullptr;
         }
-        return hProcess;
+        return std::shared_ptr<void>(shExInfo.hProcess, [](auto hProcessRawPtr)
+                                     { CloseHandle(hProcessRawPtr); });
     }
     template <StringLike T>
-    std::shared_ptr<void> RunCommand(const T &command, bool runAsAdmin)
+    std::shared_ptr<void> RunCommand(const T &command, const bool runAsAdmin)
     {
-        return RunCommand(command, NULL, runAsAdmin);
+        return RunCommand(command, nullptr, runAsAdmin);
     }
 
     inline bool IsCurrentProcessElevated()

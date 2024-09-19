@@ -47,9 +47,9 @@ namespace Wcm
         requires((WideCharacter<CharacterOf<decltype(app)>> && WideCharacter<CharacterOf<decltype(args)>>) ||
                  (ByteCharacter<CharacterOf<decltype(app)>> && ByteCharacter<CharacterOf<decltype(args)>>));
     template <StringLike T>
-    std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, bool runAsAdmin = false);
+    std::shared_ptr<void> RunCommand(const T &command, HWND hWnd, const bool runAsAdmin, const ULONG mask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_UNICODE, const int showFlags = SW_SHOW);
     template <StringLike T>
-    std::shared_ptr<void> RunCommand(const T &command, bool runAsAdmin = false);
+    std::shared_ptr<void> RunCommand(const T &command, const bool runAsAdmin = false);
     [[nodiscard]] std::optional<std::pair<int, UINT>> FindMenuItem(HMENU hMenu, LPCTSTR text);
     [[nodiscard]] DWORD GetCurrentSessionId();
     [[nodiscard]] bool IsCurrentProcessElevated();
